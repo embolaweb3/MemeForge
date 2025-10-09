@@ -9,7 +9,7 @@ import path from 'path';
 // OG Inference Official Providers
 const OFFICIAL_PROVIDERS = {
   "llama-3.3-70b-instruct": process.env.OG_PROVIDER_LLAMA || "0xf07240Efa67755B5311bc75784a061eDB47165Dd",
-  "deepseek-r1-70b": process.env.OG_PROVIDER_DEEPSEEK || "0x3feE5a4dd5FDb8a32dDA97Bed899830605dBD9D3"
+  "deepseek-r1-70b": process.env.OG_PROVIDER_DEEPSEEK || "0x3feE5a4dd5FDb8a32dDA97Bed899830605dBD9D3",
 };
 
 // Initialize OG Services
@@ -38,7 +38,7 @@ async function generateMemeCaption(prompt: string) {
     const broker = await createZGComputeNetworkBroker(signer);
     
     const targetProvider = OFFICIAL_PROVIDERS["llama-3.3-70b-instruct"];
-    
+    console.log(targetProvider)
     // Acknowledge provider
     try {
       await broker.inference.acknowledgeProviderSigner(targetProvider);
@@ -77,14 +77,13 @@ async function generateMemeCaption(prompt: string) {
       {
         messages: [{ role: "user", content: memePrompt }],
         model,
-        max_tokens: 100,
-        temperature: 0.8,
       },
       {
         headers: requestHeaders,
       }
     );
     
+    console.log(completion,'comp')
     const content = completion.choices[0].message.content;
     const chatId = completion.id;
     

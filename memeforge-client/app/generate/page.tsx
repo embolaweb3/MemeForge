@@ -9,8 +9,11 @@ import {
   Image as ImageIcon,
   Download,
   Share2,
-  Repeat
+  Repeat,
+  Wallet
 } from "lucide-react"
+import { useAccount } from "wagmi"
+import { ConnectButton } from "@rainbow-me/rainbowkit"
 
 export default function GeneratePage() {
   const [prompt, setPrompt] = useState("")
@@ -18,6 +21,9 @@ export default function GeneratePage() {
   const [generatedMeme, setGeneratedMeme] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [storageHash, setStorageHash] = useState<string | null>(null)
+  
+  const { address, isConnected } = useAccount()
+  // const { chain } = useNetwork()
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -29,19 +35,65 @@ export default function GeneratePage() {
   const generateMeme = async () => {
     if (!prompt && !selectedImage) return
 
+    if (!isConnected) {
+      alert("Please connect your wallet to generate memes")
+      return
+    }
+
     setIsGenerating(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      const mockMemeUrl = `https://picsum.photos/600/400?random=${Math.random()}`
-      const mockHash = `0x${Array.from({ length: 32 }, () => 
-        Math.floor(Math.random() * 16).toString(16)
-      ).join('')}`
-      
-      setGeneratedMeme(mockMemeUrl)
-      setStorageHash(mockHash)
+    try {
+      // Call our API route
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt,
+          image: selectedImage ? await convertToBase64(selectedImage) : null,
+          creator: address
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setGeneratedMeme(data.memeUrl)
+        setStorageHash(data.storageHash)
+        console.log(data,'data')
+        
+        // Store meme in our database
+        await fetch('/api/memes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            imageUrl: data.memeUrl,
+            prompt,
+            storageHash: data.storageHash,
+            creator: address
+          })
+        })
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      console.error('Failed to generate meme:', error)
+      alert('Failed to generate meme. Please try again.')
+    } finally {
       setIsGenerating(false)
-    }, 2000)
+    }
+  }
+
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = error => reject(error)
+    })
   }
 
   const downloadMeme = () => {
@@ -68,6 +120,24 @@ export default function GeneratePage() {
     }
   }
 
+  const mintNFT = async () => {
+    if (!isConnected) {
+      alert("Please connect your wallet to mint NFTs")
+      return
+    }
+
+    if (!generatedMeme || !storageHash) {
+      alert("No meme to mint")
+      return
+    }
+
+    // Here you would integrate with your NFT minting contract
+    alert(`Minting meme as NFT on ${'network'}...`)
+    
+    // Simulate minting process
+    // const tx = await yourNFTContract.mint(address, storageHash, generatedMeme)
+  }
+
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -80,6 +150,20 @@ export default function GeneratePage() {
           </p>
         </div>
 
+        {/* Wallet Connection Banner */}
+        {!isConnected && (
+          <Card className="glassmorphism-card border-cyan-500/30 mb-8">
+            <CardContent className="p-6 text-center">
+              <Wallet className="h-12 w-12 mx-auto mb-4 text-cyan-400" />
+              <h3 className="text-xl font-semibold mb-2">Connect Your Wallet</h3>
+              <p className="text-gray-300 mb-4">
+                Connect your wallet to start creating and minting memes on-chain
+              </p>
+              <ConnectButton />
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Input Section */}
           <Card className="glassmorphism-card">
@@ -90,6 +174,21 @@ export default function GeneratePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Connected Wallet Info */}
+              {isConnected && (
+                <div className="p-3 bg-black/20 rounded-lg border border-white/10">
+                  <div className="text-sm text-gray-400">Connected as</div>
+                  <div className="text-cyan-400 font-mono text-sm truncate">
+                    {address}
+                  </div>
+                  {/* {chain && (
+                    <div className="text-xs text-gray-400 mt-1">
+                      Network: {chain.name}
+                    </div>
+                  )} */}
+                </div>
+              )}
+
               {/* Text Prompt */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-gray-300">
@@ -131,7 +230,7 @@ export default function GeneratePage() {
 
               <Button 
                 onClick={generateMeme}
-                disabled={isGenerating || (!prompt && !selectedImage)}
+                disabled={isGenerating || (!prompt && !selectedImage) || !isConnected}
                 variant="premium"
                 className="w-full py-6 text-lg"
               >
@@ -208,9 +307,14 @@ export default function GeneratePage() {
                   </div>
 
                   {/* Mint NFT Button */}
-                  <Button variant="glass" className="w-full py-4">
+                  <Button 
+                    variant="glass" 
+                    className="w-full py-4"
+                    onClick={mintNFT}
+                    disabled={!isConnected}
+                  >
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Mint as NFT on OG Chain
+                    {/* Mint as NFT on {chain?.name || 'OG Chain'} */}
                   </Button>
                 </>
               ) : (
@@ -218,6 +322,11 @@ export default function GeneratePage() {
                   <div className="text-center text-gray-400">
                     <ImageIcon className="h-12 w-12 mx-auto mb-4" />
                     <p>Your generated meme will appear here</p>
+                    {!isConnected && (
+                      <p className="text-sm mt-2 text-cyan-400">
+                        Connect wallet to generate
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
