@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract MemeRegistry is Ownable, ReentrancyGuard {
     struct Meme {
@@ -82,7 +82,7 @@ contract MemeRegistry is Ownable, ReentrancyGuard {
         string serviceType
     );
     
-    constructor() Ownable() {}
+    constructor() Ownable(msg.sender) {}
     
     /**
      * @dev Create a new meme with payment
@@ -251,14 +251,5 @@ contract MemeRegistry is Ownable, ReentrancyGuard {
         require(balance > 0, "No funds to withdraw");
         payable(owner()).transfer(balance);
     }
-    
-    /**
-     * @dev Update fees (owner only)
-     */
-    function updateFees(uint256 _mintFee, uint256 _remixFee) external onlyOwner {
-        // In production, you might want more sophisticated fee management
-        // This is simplified for the example
-        require(_mintFee > 0 && _remixFee > 0, "Fees must be positive");
-        // Fees would be stored in state variables
-    }
+
 }
