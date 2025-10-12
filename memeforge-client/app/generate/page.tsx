@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/app/components/ui/Button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/Card"
-import { 
-  Upload, 
-  Sparkles, 
+import {
+  Upload,
+  Sparkles,
   Image as ImageIcon,
   Download,
   Share2,
@@ -20,9 +20,10 @@ import {
   ExternalLink,
   Loader2
 } from "lucide-react"
-import { useAccount, useChainId,useChains, useWaitForTransactionReceipt } from "wagmi"
+import { useAccount, useChainId, useChains, useWaitForTransactionReceipt, useBalance } from "wagmi"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useMemeActions } from "@/hooks/useMemeContract"
+import { usePayment } from "@/hooks/usePayment"
 import { ethers } from "ethers"
 import { formatHash } from "@/lib/utils"
 
@@ -43,16 +44,16 @@ export default function GeneratePage() {
   const [aiOptions, setAiOptions] = useState<string[]>([])
   const [isGeneratingOptions, setIsGeneratingOptions] = useState(false)
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
-  const [paymentState, setPaymentState] = useState<PaymentState>({ 
-    completed: false, 
-    processing: false 
-  })
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+
   const [memeId, setMemeId] = useState<number | null>(null)
-  
+
   const { address, isConnected } = useAccount()
   const chainId = useChainId();
   const chains = useChains()
   const { createMeme, remixMeme } = useMemeActions()
+
+  const { paymentState, initiatePayment, resetPayment } = usePayment()
 
   const {
     isLoading: isTxLoading,
@@ -64,20 +65,19 @@ export default function GeneratePage() {
     hash: transactionHash as `0x${string}`,
   });
 
-    useEffect(() => {
-    if (isSuccess) {
-      console.log("✅ Transaction successful:", receipt);
-      setPaymentState((prev) => ({ ...prev, processing: false }));
-    }
-  }, [isSuccess, receipt]);
+  // Balance check
+  const { data: balance } = useBalance({
+    address: address,
+    chainId: Number(process.env.NEXT_PUBLIC_OG_TESTNET_CHAIN_ID!),
+  })
 
-   useEffect(() => {
-    if (isError && error) {
-      console.error("❌ Transaction failed:", error);
-      setPaymentState((prev) => ({ ...prev, processing: false }));
-      alert("Transaction failed. Please try again.");
-    }
-  }, [isError, error]);
+  const SERVICE_FEES = {
+    MINT: "0.001",      // 0.001 0G for minting
+    REMIX: "0.0005",    // 0.0005 0G for remixing
+    AI_GENERATION: "0.0003", // 0.0003 0G for AI
+    STORAGE: "0.0002"   // 0.0002 0G for storage
+  }
+
 
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,33 +96,59 @@ export default function GeneratePage() {
     }
   }
 
-  const initiatePayment = async () => {
+  const openPaymentModal = () => {
     if (!isConnected) {
       alert("Please connect your wallet first")
       return
     }
 
-    if (chainId !== 16661 && chainId !== 16602) {
+    if (chainId !== Number(process.env.NEXT_PUBLIC_OG_TESTNET_CHAIN_ID!)) {
       alert("Please switch to 0G Chain to use MemeForge")
       return
     }
 
-    setPaymentState({ completed: false, processing: true })
-    
+    setShowPaymentModal(true)
+  }
+
+
+  const handlePayment = async () => {
     try {
-      // payment transaction later, simulation for now
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      setPaymentState({ 
-        completed: true, 
-        processing: false 
-      })
-    } catch (error) {
-      console.error('Payment failed:', error)
-      setPaymentState({ completed: false, processing: false })
-      alert('Payment failed. Please try again.')
+      // Pay for the complete service (mint includes AI + storage)
+      await initiatePayment('mint')
+      setShowPaymentModal(false)
+    } catch (error: any) {
+      // Error is handled in the payment hook
+      console.error('Payment initiation failed:', error)
     }
   }
+
+  // const initiatePayment = async () => {
+  //   if (!isConnected) {
+  //     alert("Please connect your wallet first")
+  //     return
+  //   }
+
+  //   if (chainId !== 16661 && chainId !== 16602) {
+  //     alert("Please switch to 0G Chain to use MemeForge")
+  //     return
+  //   }
+
+  //   setPaymentState({ completed: false, processing: true })
+
+  //   try {
+  //     // payment transaction later, simulation for now
+  //     await new Promise(resolve => setTimeout(resolve, 2000))
+
+  //     setPaymentState({ 
+  //       completed: true, 
+  //       processing: false 
+  //     })
+  //   } catch (error) {
+  //     console.error('Payment failed:', error)
+  //     setPaymentState({ completed: false, processing: false })
+  //     alert('Payment failed. Please try again.')
+  //   }
+  // }
 
   const generateAiOptions = async () => {
     if (!prompt.trim() || !paymentState.completed) return
@@ -168,7 +194,7 @@ export default function GeneratePage() {
     setTransactionHash(null)
     setMemeCaption(null)
     setMemeId(null)
-    
+
     try {
       // Convert image to base64 if uploaded
       let imageBase64 = null
@@ -176,14 +202,9 @@ export default function GeneratePage() {
         imageBase64 = await convertToBase64(selectedImage)
       }
 
-      // Use custom caption if provided (from AI options), otherwise use prompt
       const finalPrompt = customCaption || prompt
 
-      console.log('Calling generate API with:', { 
-        finalPrompt, 
-        hasImage: !!imageBase64, 
-        creator: address 
-      })
+      console.log('Generating meme with OG services...')
 
       // Step 1: Generate meme using OG services
       const response = await fetch('/api/generate', {
@@ -195,7 +216,8 @@ export default function GeneratePage() {
           prompt: finalPrompt,
           image: imageBase64,
           creator: address,
-          userAddress: address
+          userAddress: address,
+          paymentTxHash: paymentState.txHash // Link to payment
         })
       })
 
@@ -219,6 +241,11 @@ export default function GeneratePage() {
           setTransactionHash(tx.hash)
           console.log('Meme minting transaction:', tx.hash)
 
+          // Extract meme ID from transaction events (in real implementation)
+          // For now, we'll simulate getting the meme ID
+          const simulatedMemeId = Math.floor(Math.random() * 1000) + 1
+          setMemeId(simulatedMemeId)
+
           // Store meme in our database
           await fetch('/api/memes', {
             method: 'POST',
@@ -231,15 +258,15 @@ export default function GeneratePage() {
               caption: data.caption,
               storageHash: data.storageHash,
               transactionHash: tx.hash,
+              paymentTxHash: paymentState.txHash,
               creator: address,
               aiGenerated: true,
-              memeId: memeId
+              memeId: simulatedMemeId
             })
           })
 
         } catch (contractError: any) {
           console.error('Smart contract error:', contractError)
-          // Even if contract fails, we still have the generated meme
           alert('Meme generated but failed to mint on blockchain. You can still download and share it.')
         }
 
@@ -298,10 +325,11 @@ export default function GeneratePage() {
     if (!memeId || !paymentState.completed) return
 
     try {
-      // For remixing, we would generate a new variation and mint as remix
+
+      await initiatePayment('remix')
       const newCaption = `${memeCaption} - Remixed!`
-      // In practice, you'd generate a new image/variation
-      
+      // generate a new image/variation later
+
       const tx = await remixMeme(
         memeId,
         storageHash + "-remix", // New storage hash
@@ -329,7 +357,7 @@ export default function GeneratePage() {
       })
 
       const data = await response.json()
-      
+
       if (data.success && data.exists) {
         alert('✅ Storage verified! File exists on OG Storage.')
       } else {
@@ -350,15 +378,26 @@ export default function GeneratePage() {
     setAiOptions([])
     setSelectedOption(null)
     setMemeId(null)
+    resetPayment()
   }
 
   const getNetworkName = () => {
-  const currentChain = chains.find((c) => c.id === chainId);
+    const currentChain = chains.find((c) => c.id === chainId);
     // Return its name, or a default
     return currentChain?.name ?? "0G Chain";
   }
 
   const isCorrectNetwork = chainId === 16602 || 16661
+
+  const hasSufficientBalance = balance &&
+    parseFloat(ethers.formatEther(balance.value)) >= parseFloat(SERVICE_FEES.MINT)
+
+      // Calculate total cost
+  const totalCost = (
+    parseFloat(SERVICE_FEES.AI_GENERATION) + 
+    parseFloat(SERVICE_FEES.STORAGE) + 
+    parseFloat(SERVICE_FEES.MINT)
+  ).toFixed(4)
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -400,7 +439,7 @@ export default function GeneratePage() {
               </p>
               <Button variant="premium" onClick={initiatePayment}>
                 <Zap className="h-4 w-4 mr-2" />
-                Pay 0.0015 ZGS to Continue
+                Pay 0.0015 0G to Continue
               </Button>
             </CardContent>
           </Card>
@@ -477,19 +516,19 @@ export default function GeneratePage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>AI Generation (OG Inference):</span>
-                    <span className="text-cyan-400">0.0003 ZGS</span>
+                    <span className="text-cyan-400">0.0003 0G</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Storage (OG Storage):</span>
-                    <span className="text-cyan-400">0.0002 ZGS</span>
+                    <span className="text-cyan-400">0.0002 0G</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Smart Contract Mint:</span>
-                    <span className="text-cyan-400">0.001 ZGS</span>
+                    <span className="text-cyan-400">0.001 0G</span>
                   </div>
                   <div className="flex justify-between border-t border-white/10 pt-2 font-bold">
                     <span>Total Cost:</span>
-                    <span className="text-green-400">0.0015 ZGS</span>
+                    <span className="text-green-400">0.0015 0G</span>
                   </div>
                 </div>
               </div>
@@ -506,11 +545,11 @@ export default function GeneratePage() {
                   className="w-full h-32 px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none transition-all"
                   disabled={!paymentState.completed}
                 />
-                
+
                 {/* AI Options Generator */}
                 {prompt && paymentState.completed && (
                   <div className="flex space-x-2">
-                    <Button 
+                    <Button
                       onClick={generateAiOptions}
                       disabled={isGeneratingOptions}
                       variant="outline"
@@ -541,11 +580,10 @@ export default function GeneratePage() {
                     {aiOptions.map((option, index) => (
                       <div
                         key={index}
-                        className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                          selectedOption === index
-                            ? 'border-cyan-500 bg-cyan-500/10'
-                            : 'border-white/10 bg-black/20 hover:border-white/30'
-                        }`}
+                        className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedOption === index
+                          ? 'border-cyan-500 bg-cyan-500/10'
+                          : 'border-white/10 bg-black/20 hover:border-white/30'
+                          }`}
                         onClick={() => setSelectedOption(index)}
                       >
                         <div className="flex items-center space-x-2">
@@ -555,7 +593,7 @@ export default function GeneratePage() {
                       </div>
                     ))}
                   </div>
-                  <Button 
+                  <Button
                     onClick={() => generateMeme(aiOptions[selectedOption!])}
                     disabled={selectedOption === null || isGenerating}
                     variant="premium"
@@ -571,11 +609,10 @@ export default function GeneratePage() {
                 <label className="text-sm font-medium text-gray-300">
                   Upload Image (Optional)
                 </label>
-                <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-                  paymentState.completed 
-                    ? 'border-white/10 hover:border-cyan-400/50 cursor-pointer' 
-                    : 'border-gray-600/50 opacity-50'
-                }`}>
+                <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${paymentState.completed
+                  ? 'border-white/10 hover:border-cyan-400/50 cursor-pointer'
+                  : 'border-gray-600/50 opacity-50'
+                  }`}>
                   <input
                     type="file"
                     accept="image/*"
@@ -603,7 +640,7 @@ export default function GeneratePage() {
               </div>
 
               {/* Generate Button */}
-              <Button 
+              <Button
                 onClick={() => generateMeme()}
                 disabled={isGenerating || isTxLoading || (!prompt && !selectedImage) || !paymentState.completed}
                 variant="premium"
@@ -663,8 +700,8 @@ export default function GeneratePage() {
                     <div className="text-xs text-green-300 font-mono truncate flex-1 mr-2">
                       TX: {formatHash(transactionHash)}
                     </div>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => window.open(`https://testnet.0g.ai/tx/${transactionHash}`, '_blank')}
                       className="h-6 px-2"
@@ -689,8 +726,8 @@ export default function GeneratePage() {
                 <>
                   {/* Generated Meme */}
                   <div className="rounded-lg overflow-hidden bg-black/20 border border-white/10 hover:border-cyan-500/30 transition-all duration-300">
-                    <img 
-                      src={generatedMeme} 
+                    <img
+                      src={generatedMeme}
                       alt="Generated meme"
                       className="w-full h-auto"
                     />
@@ -715,8 +752,8 @@ export default function GeneratePage() {
                         <div className="font-mono text-xs text-cyan-400 flex-1 truncate mr-2">
                           {formatHash(storageHash)}
                         </div>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           onClick={verifyStorage}
                           className="h-7 px-2"
@@ -733,15 +770,15 @@ export default function GeneratePage() {
 
                   {/* Action Buttons */}
                   <div className="grid grid-cols-2 gap-3">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={downloadMeme}
                       className="flex items-center space-x-2"
                     >
                       <Download className="h-4 w-4" />
                       <span>Download</span>
                     </Button>
-                    <Button 
+                    <Button
                       variant="outline"
                       onClick={shareMeme}
                       className="flex items-center space-x-2"
@@ -752,7 +789,7 @@ export default function GeneratePage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <Button 
+                    <Button
                       variant="premium"
                       onClick={remixMemeAction}
                       disabled={!memeId}
@@ -761,7 +798,7 @@ export default function GeneratePage() {
                       <Repeat className="h-4 w-4" />
                       <span>Remix</span>
                     </Button>
-                    <Button 
+                    <Button
                       variant="outline"
                       onClick={resetForm}
                       className="flex items-center space-x-2"
@@ -812,7 +849,7 @@ export default function GeneratePage() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card className="glassmorphism-card text-center">
             <CardContent className="p-6">
               <Coins className="h-8 w-8 mx-auto mb-3 text-green-400" />
@@ -822,7 +859,7 @@ export default function GeneratePage() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card className="glassmorphism-card text-center">
             <CardContent className="p-6">
               <Repeat className="h-8 w-8 mx-auto mb-3 text-purple-400" />
