@@ -18,7 +18,8 @@ import {
   CheckCircle2,
   AlertCircle,
   ExternalLink,
-  Loader2
+  Loader2,
+  X
 } from "lucide-react"
 import { useAccount, useChainId, useChains, useWaitForTransactionReceipt, useBalance } from "wagmi"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
@@ -27,11 +28,6 @@ import { usePayment } from "@/hooks/usePayment"
 import { ethers } from "ethers"
 import { formatHash } from "@/lib/utils"
 
-interface PaymentState {
-  completed: boolean
-  processing: boolean
-  txHash?: string
-}
 
 export default function GeneratePage() {
   const [prompt, setPrompt] = useState("")
@@ -55,15 +51,34 @@ export default function GeneratePage() {
 
   const { paymentState, initiatePayment, resetPayment } = usePayment()
 
-  const {
-    isLoading: isTxLoading,
-    isSuccess,
-    isError,
-    data: receipt,
-    error,
-  } = useWaitForTransactionReceipt({
-    hash: transactionHash as `0x${string}`,
-  });
+
+  const { data: paymentReceipt, isLoading: isPaymentTxLoading, isSuccess: isPaymentSuccess, isError: isPaymentError } =
+    useWaitForTransactionReceipt({
+      hash: paymentState.txHash as `0x${string}`,
+    })
+
+  useEffect(() => {
+    if (isPaymentSuccess) {
+      console.log('✅ Payment transaction confirmed!', paymentReceipt)
+    }
+    if (isPaymentError) {
+      console.error('❌ Payment transaction failed')
+    }
+  }, [isPaymentSuccess, isPaymentError, paymentReceipt])
+
+
+  // Wait for mint transaction
+  const { data: mintReceipt, isLoading: isMintTxLoading, isSuccess: isMintSuccess } =
+    useWaitForTransactionReceipt({
+      hash: transactionHash as `0x${string}`,
+    })
+
+  useEffect(() => {
+    if (isMintSuccess) {
+      console.log('✅ Meme minting transaction confirmed!', mintReceipt)
+    }
+  }, [isMintSuccess, mintReceipt])
+
 
   // Balance check
   const { data: balance } = useBalance({
@@ -392,10 +407,10 @@ export default function GeneratePage() {
   const hasSufficientBalance = balance &&
     parseFloat(ethers.formatEther(balance.value)) >= parseFloat(SERVICE_FEES.MINT)
 
-      // Calculate total cost
+  // Calculate total cost
   const totalCost = (
-    parseFloat(SERVICE_FEES.AI_GENERATION) + 
-    parseFloat(SERVICE_FEES.STORAGE) + 
+    parseFloat(SERVICE_FEES.AI_GENERATION) +
+    parseFloat(SERVICE_FEES.STORAGE) +
     parseFloat(SERVICE_FEES.MINT)
   ).toFixed(4)
 
@@ -428,32 +443,77 @@ export default function GeneratePage() {
           </Card>
         )}
 
-        {/* Payment Gateway */}
-        {isConnected && isCorrectNetwork && !paymentState.completed && !paymentState.processing && (
-          <Card className="glassmorphism-card border-yellow-500/30 mb-8">
+        {/* Insufficient Balance Warning */}
+        {isConnected && isCorrectNetwork && !hasSufficientBalance && (
+          <Card className="glassmorphism-card border-orange-500/30 mb-8">
             <CardContent className="p-6 text-center">
-              <CreditCard className="h-12 w-12 mx-auto mb-4 text-yellow-400" />
-              <h3 className="text-xl font-semibold mb-2">Payment Required</h3>
+              <AlertCircle className="h-12 w-12 mx-auto mb-4 text-orange-400" />
+              <h3 className="text-xl font-semibold mb-2">Insufficient Balance</h3>
               <p className="text-gray-300 mb-4">
-                Pay a small fee to use AI generation and on-chain storage services
+                You need at least {SERVICE_FEES.MINT} OG to create a meme
               </p>
-              <Button variant="premium" onClick={initiatePayment}>
-                <Zap className="h-4 w-4 mr-2" />
-                Pay 0.0015 0G to Continue
-              </Button>
+              <div className="text-sm text-gray-400">
+                Your balance: {balance ? parseFloat(ethers.formatEther(balance.value)).toFixed(4) : '0'} 0G
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Payment Status */}
+        {paymentState.error && (
+          <Card className="glassmorphism-card border-red-500/30 mb-8">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3 text-red-400">
+                <AlertCircle className="h-6 w-6" />
+                <div>
+                  <div className="font-semibold">Payment Failed</div>
+                  <div className="text-sm text-red-300">{paymentState.error}</div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
 
         {/* Payment Processing */}
-        {paymentState.processing && (
+        {(paymentState.processing || isPaymentTxLoading) && (
           <Card className="glassmorphism-card border-blue-500/30 mb-8">
-            <CardContent className="p-6 text-center">
-              <Loader2 className="h-12 w-12 mx-auto mb-4 text-blue-400 animate-spin" />
-              <h3 className="text-xl font-semibold mb-2">Processing Payment</h3>
-              <p className="text-gray-300">
-                Please confirm the transaction in your wallet...
-              </p>
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3">
+                <Loader2 className="h-6 w-6 text-blue-400 animate-spin" />
+                <div>
+                  <div className="font-semibold text-blue-400">Processing Payment</div>
+                  <div className="text-sm text-gray-300">
+                    Confirm the transaction in your wallet...
+                    {paymentState.txHash && (
+                      <div className="text-xs font-mono truncate mt-1">
+                        TX: {formatHash(paymentState.txHash)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Payment Success */}
+        {paymentState.completed && (
+          <Card className="glassmorphism-card border-green-500/30 mb-8">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3 text-green-400">
+                <CheckCircle2 className="h-6 w-6" />
+                <div>
+                  <div className="font-semibold">Payment Successful!</div>
+                  <div className="text-sm text-green-300">
+                    You're ready to create memes
+                    {paymentState.txHash && (
+                      <div className="text-xs font-mono truncate mt-1">
+                        TX: {formatHash(paymentState.txHash)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -468,6 +528,23 @@ export default function GeneratePage() {
                 Connect your wallet to start creating and minting memes on-chain
               </p>
               <ConnectButton />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Payment Required Banner */}
+        {isConnected && isCorrectNetwork && hasSufficientBalance && !paymentState.completed && !paymentState.processing && (
+          <Card className="glassmorphism-card border-yellow-500/30 mb-8">
+            <CardContent className="p-6 text-center">
+              <CreditCard className="h-12 w-12 mx-auto mb-4 text-yellow-400" />
+              <h3 className="text-xl font-semibold mb-2">Payment Required</h3>
+              <p className="text-gray-300 mb-4">
+                Pay {totalCost} OG to use AI generation and on-chain storage services
+              </p>
+              <Button variant="premium" onClick={openPaymentModal}>
+                <Zap className="h-4 w-4 mr-2" />
+                Proceed to Payment
+              </Button>
             </CardContent>
           </Card>
         )}
@@ -504,6 +581,11 @@ export default function GeneratePage() {
                       </span>
                     )}
                   </div>
+                  {balance && (
+                    <div className="text-xs text-gray-400 mt-1">
+                      Balance: {parseFloat(ethers.formatEther(balance.value)).toFixed(4)} OG
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -516,19 +598,19 @@ export default function GeneratePage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>AI Generation (OG Inference):</span>
-                    <span className="text-cyan-400">0.0003 0G</span>
+                    <span className="text-cyan-400">{SERVICE_FEES.AI_GENERATION} OG</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Storage (OG Storage):</span>
-                    <span className="text-cyan-400">0.0002 0G</span>
+                    <span className="text-cyan-400">{SERVICE_FEES.STORAGE} OG</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Smart Contract Mint:</span>
-                    <span className="text-cyan-400">0.001 0G</span>
+                    <span className="text-cyan-400">{SERVICE_FEES.MINT} OG</span>
                   </div>
                   <div className="flex justify-between border-t border-white/10 pt-2 font-bold">
                     <span>Total Cost:</span>
-                    <span className="text-green-400">0.0015 0G</span>
+                    <span className="text-green-400">{totalCost} OG</span>
                   </div>
                 </div>
               </div>
@@ -581,8 +663,8 @@ export default function GeneratePage() {
                       <div
                         key={index}
                         className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedOption === index
-                          ? 'border-cyan-500 bg-cyan-500/10'
-                          : 'border-white/10 bg-black/20 hover:border-white/30'
+                            ? 'border-cyan-500 bg-cyan-500/10'
+                            : 'border-white/10 bg-black/20 hover:border-white/30'
                           }`}
                         onClick={() => setSelectedOption(index)}
                       >
@@ -610,8 +692,8 @@ export default function GeneratePage() {
                   Upload Image (Optional)
                 </label>
                 <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${paymentState.completed
-                  ? 'border-white/10 hover:border-cyan-400/50 cursor-pointer'
-                  : 'border-gray-600/50 opacity-50'
+                    ? 'border-white/10 hover:border-cyan-400/50 cursor-pointer'
+                    : 'border-gray-600/50 opacity-50'
                   }`}>
                   <input
                     type="file"
@@ -642,7 +724,7 @@ export default function GeneratePage() {
               {/* Generate Button */}
               <Button
                 onClick={() => generateMeme()}
-                disabled={isGenerating || isTxLoading || (!prompt && !selectedImage) || !paymentState.completed}
+                disabled={isGenerating || isMintTxLoading || (!prompt && !selectedImage) || !paymentState.completed}
                 variant="premium"
                 className="w-full py-6 text-lg font-semibold"
               >
@@ -651,7 +733,7 @@ export default function GeneratePage() {
                     <Loader2 className="h-5 w-5 animate-spin mr-2" />
                     Generating with OG AI...
                   </>
-                ) : isTxLoading ? (
+                ) : isMintTxLoading ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin mr-2" />
                     Minting on Blockchain...
@@ -796,7 +878,7 @@ export default function GeneratePage() {
                       className="flex items-center space-x-2"
                     >
                       <Repeat className="h-4 w-4" />
-                      <span>Remix</span>
+                      <span>Remix ({SERVICE_FEES.REMIX} OG)</span>
                     </Button>
                     <Button
                       variant="outline"
@@ -815,7 +897,7 @@ export default function GeneratePage() {
                       <div className="text-xs text-gray-400 space-y-1">
                         <div>Creator: {formatHash(address!)}</div>
                         <div>Network: {getNetworkName()}</div>
-                        <div>Status: {isTxLoading ? 'Confirming...' : 'Confirmed'}</div>
+                        <div>Status: {isMintTxLoading ? 'Confirming...' : 'Confirmed'}</div>
                       </div>
                     </div>
                   )}
@@ -837,6 +919,93 @@ export default function GeneratePage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Payment Modal */}
+        {showPaymentModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <Card className="glassmorphism-card border-cyan-500/30 w-full max-w-md">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center space-x-2">
+                    <CreditCard className="h-6 w-6 text-cyan-400" />
+                    <span>Confirm Payment</span>
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowPaymentModal(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-black/20 rounded-lg border border-white/10">
+                  <div className="text-center mb-4">
+                    <div className="text-2xl font-bold text-green-400">{totalCost} OG</div>
+                    <div className="text-sm text-gray-400">Total Amount</div>
+                  </div>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>AI Generation:</span>
+                      <span className="text-cyan-400">{SERVICE_FEES.AI_GENERATION} OG</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>OG Storage:</span>
+                      <span className="text-cyan-400">{SERVICE_FEES.STORAGE} OG</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Smart Contract:</span>
+                      <span className="text-cyan-400">{SERVICE_FEES.MINT} OG</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-black/20 rounded-lg border border-white/10">
+                  <div className="text-sm text-gray-400 mb-1">Wallet</div>
+                  <div className="text-cyan-400 font-mono text-sm truncate">
+                    {formatHash(address!)}
+                  </div>
+                  {balance && (
+                    <div className="text-xs text-gray-400 mt-1">
+                      Balance: {parseFloat(ethers.formatEther(balance.value)).toFixed(4)} OG
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  onClick={handlePayment}
+                  disabled={paymentState.processing || !hasSufficientBalance}
+                  variant="premium"
+                  className="w-full py-4"
+                >
+                  {paymentState.processing ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      Processing Payment...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-5 w-5 mr-2" />
+                      Pay {totalCost} OG
+                    </>
+                  )}
+                </Button>
+
+                {!hasSufficientBalance && (
+                  <div className="text-center text-red-400 text-sm">
+                    ❌ Insufficient balance
+                  </div>
+                )}
+
+                <div className="text-center text-xs text-gray-400">
+                  You'll be able to create multiple memes after payment
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Additional Info */}
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
