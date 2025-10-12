@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/app/components/ui/Button"
 import { Card, CardContent } from "@/app/components/ui/Card"
-import { 
-  Heart, 
-  Share2, 
+import {
+  Heart,
+  Share2,
   MessageCircle,
   Sparkles,
   TrendingUp,
@@ -132,16 +132,16 @@ export default function FeedPage() {
   const fetchMemes = async () => {
     setIsLoading(true)
     try {
-      
+
       // const response = await fetch(`/api/memes?filter=${filter}&limit=20`)
       // const data = await response.json()
-      
+
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000))
-      
+
       // Filter memes based on current filter
       let filteredMemes = [...mockMemes]
-      
+
       switch (filter) {
         case 'recent':
           filteredMemes.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -154,7 +154,7 @@ export default function FeedPage() {
           filteredMemes.sort((a, b) => b.trendingScore - a.trendingScore)
           break
       }
-      
+
       setMemes(filteredMemes)
     } catch (error) {
       console.error('Failed to fetch memes:', error)
@@ -175,8 +175,8 @@ export default function FeedPage() {
       return
     }
 
-    setMemes(memes.map(meme => 
-      meme.id === memeId 
+    setMemes(memes.map(meme =>
+      meme.id === memeId
         ? { ...meme, likes: meme.likes + 1, trendingScore: meme.trendingScore + 5 }
         : meme
     ))
@@ -186,7 +186,7 @@ export default function FeedPage() {
 
   const handleShare = async (meme: Meme) => {
     const shareUrl = `${window.location.origin}/meme/${meme.storageHash}`
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -194,14 +194,14 @@ export default function FeedPage() {
           text: meme.caption,
           url: shareUrl,
         })
-        
+
         // Update share count
-        setMemes(memes.map(m => 
-          m.id === meme.id 
+        setMemes(memes.map(m =>
+          m.id === meme.id
             ? { ...m, shares: m.shares + 1, trendingScore: m.trendingScore + 2 }
             : m
         ))
-        
+
         // await fetch(`/api/memes/${meme.id}/share`, { method: 'POST' })
       } catch (error) {
         console.log('Share cancelled')
@@ -210,10 +210,10 @@ export default function FeedPage() {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(shareUrl)
       alert('Meme link copied to clipboard!')
-      
+
       // Update share count
-      setMemes(memes.map(m => 
-        m.id === meme.id 
+      setMemes(memes.map(m =>
+        m.id === meme.id
           ? { ...m, shares: m.shares + 1, trendingScore: m.trendingScore + 2 }
           : m
       ))
@@ -231,7 +231,7 @@ export default function FeedPage() {
       })
 
       const data = await response.json()
-      
+
       if (data.success && data.exists) {
         alert('✅ Storage verified! File exists on OG Storage.')
       } else {
@@ -246,11 +246,11 @@ export default function FeedPage() {
     const now = new Date()
     const past = new Date(timestamp)
     const diff = now.getTime() - past.getTime()
-    
+
     const minutes = Math.floor(diff / 60000)
     const hours = Math.floor(diff / 3600000)
     const days = Math.floor(diff / 86400000)
-    
+
     if (days > 0) return `${days}d ago`
     if (hours > 0) return `${hours}h ago`
     if (minutes > 0) return `${minutes}m ago`
@@ -318,24 +318,24 @@ export default function FeedPage() {
         {/* Filters and Actions */}
         <div className="flex flex-wrap gap-4 mb-8 justify-between items-center">
           <div className="flex flex-wrap gap-2">
-            <Button 
-              variant={filter === 'trending' ? 'premium' : 'outline'} 
+            <Button
+              variant={filter === 'trending' ? 'premium' : 'outline'}
               onClick={() => setFilter('trending')}
               className="flex items-center space-x-2"
             >
               <TrendingUp className="h-4 w-4" />
               <span>Trending</span>
             </Button>
-            <Button 
-              variant={filter === 'recent' ? 'premium' : 'outline'} 
+            <Button
+              variant={filter === 'recent' ? 'premium' : 'outline'}
               onClick={() => setFilter('recent')}
               className="flex items-center space-x-2"
             >
               <Clock className="h-4 w-4" />
               <span>Recent</span>
             </Button>
-            <Button 
-              variant={filter === 'ai' ? 'premium' : 'outline'} 
+            <Button
+              variant={filter === 'ai' ? 'premium' : 'outline'}
               onClick={() => setFilter('ai')}
               className="flex items-center space-x-2"
             >
@@ -343,9 +343,9 @@ export default function FeedPage() {
               <span>AI Only</span>
             </Button>
           </div>
-          
-          <Button 
-            variant="outline" 
+
+          <Button
+            variant="outline"
             onClick={refreshFeed}
             disabled={refreshing}
             className="flex items-center space-x-2"
@@ -380,7 +380,7 @@ export default function FeedPage() {
             {memes.map((meme) => {
               const trendingBadge = getTrendingBadge(meme.trendingScore)
               const TrendingIcon = trendingBadge?.icon
-              
+
               return (
                 <Card key={meme.id} className="glassmorphism-card hover:border-cyan-500/30 transition-all duration-300 group">
                   <CardContent className="p-6">
@@ -405,7 +405,7 @@ export default function FeedPage() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center space-x-2">
                         {trendingBadge && (
                           <div className={`flex items-center space-x-1 px-2 py-1 rounded-full bg-black/20 ${trendingBadge.color}`}>
@@ -421,8 +421,8 @@ export default function FeedPage() {
 
                     {/* Meme Image */}
                     <div className="rounded-lg overflow-hidden mb-4 bg-black/20 border border-white/10 group-hover:border-cyan-500/50 transition-all duration-300">
-                      <img 
-                        src={meme.imageUrl} 
+                      <img
+                        src={meme.imageUrl}
                         alt={meme.caption}
                         className="w-full h-auto"
                       />
@@ -434,7 +434,7 @@ export default function FeedPage() {
                         <div className="text-sm text-gray-400 mb-1">AI Caption</div>
                         <div className="text-white font-medium">"{meme.caption}"</div>
                       </div>
-                      
+
                       {meme.prompt && (
                         <div className="p-3 bg-black/20 rounded-lg border border-white/10">
                           <div className="text-sm text-gray-400 mb-1 flex items-center space-x-2">
@@ -454,16 +454,16 @@ export default function FeedPage() {
                           {meme.storageHash}
                         </div>
                         <div className="flex space-x-1">
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => verifyStorage(meme.storageHash)}
                             className="h-7 px-2"
                           >
                             Verify
                           </Button>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={() => window.open(`https://og-scan.com/tx/${meme.transactionHash}`, '_blank')}
                             className="h-7 px-2"
@@ -477,8 +477,8 @@ export default function FeedPage() {
                     {/* Actions */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           onClick={() => handleLike(meme.id)}
                           disabled={!isConnected}
@@ -487,16 +487,16 @@ export default function FeedPage() {
                           <Heart className="h-4 w-4" />
                           <span>{meme.likes.toLocaleString()}</span>
                         </Button>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           className="flex items-center space-x-2"
                         >
                           <MessageCircle className="h-4 w-4" />
                           <span>{meme.comments.toLocaleString()}</span>
                         </Button>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           onClick={() => handleShare(meme)}
                           className="flex items-center space-x-2"
@@ -505,9 +505,9 @@ export default function FeedPage() {
                           <span>{meme.shares.toLocaleString()}</span>
                         </Button>
                       </div>
-                      
-                      <Button 
-                        variant="premium" 
+
+                      <Button
+                        variant="premium"
                         size="sm"
                         onClick={() => {
                           // Navigate to remix page with meme data
@@ -529,7 +529,7 @@ export default function FeedPage() {
               <TrendingUp className="h-16 w-16 mx-auto mb-6 text-cyan-400" />
               <h3 className="text-xl font-semibold mb-2">No Memes Found</h3>
               <p className="text-gray-300 mb-6">
-                {filter === 'ai' 
+                {filter === 'ai'
                   ? "No AI-generated memes found. Be the first to create one!"
                   : "No memes found for the selected filter."
                 }
@@ -546,8 +546,8 @@ export default function FeedPage() {
         {/* Load More Button */}
         {memes.length > 0 && !isLoading && (
           <div className="text-center mt-8">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => {
                 // In production, this would load more memes
                 console.log('Load more memes...')
