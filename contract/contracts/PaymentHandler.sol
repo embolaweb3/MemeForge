@@ -72,7 +72,8 @@ contract PaymentHandler is Ownable, ReentrancyGuard {
         // Refund excess
         if (msg.value > requiredFee) {
             uint256 refundAmount = msg.value - requiredFee;
-            payable(msg.sender).transfer(refundAmount);
+            (bool success,) = payable(msg.sender).call{value : refundAmount}("");
+            require(success, "Transfer failed");
         }
 
         emit PaymentReceived(msg.sender, requiredFee, _serviceType, paymentId);
@@ -103,7 +104,8 @@ contract PaymentHandler is Ownable, ReentrancyGuard {
         require(payment.user != address(0), "Payment not found");
         require(!payment.completed, "Service already completed");
 
-        payable(payment.user).transfer(payment.amount);
+        (bool success,) = payable(payment.user).call{value :payment.amount}("");
+        require(success, "Transfer failed");
         payments[_paymentId].completed = true;
 
         emit RefundIssued(_paymentId, payment.user, payment.amount);
