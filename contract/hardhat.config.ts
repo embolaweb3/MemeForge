@@ -21,12 +21,15 @@ const config: HardhatUserConfig = {
     og_testnet: {
       url: "https://evmrpc-testnet.0g.ai",
       chainId: 16602,
-      accounts: [process.env.PRIVATE_KEY!]
+      accounts: [process.env.PRIVATE_KEY!],
+      saveDeployments :true
     },
     og_mainnet: {
       url: "https://evmrpc.0g.ai",
       chainId: 16661,
-      accounts: [process.env.PRIVATE_KEY!]
+      accounts: [process.env.PRIVATE_KEY!],
+      saveDeployments :true
+
     }
   },
   namedAccounts: {
