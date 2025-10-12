@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { useAccount } from "wagmi"
 import { formatHash } from "@/lib/utils"
+import { useMemeActions } from "@/hooks/useMemeContract"
 
 interface Meme {
   id: string
@@ -169,20 +170,40 @@ export default function FeedPage() {
     fetchMemes()
   }
 
-  const handleLike = async (memeId: string) => {
-    if (!isConnected) {
-      alert("Please connect your wallet to like memes")
-      return
-    }
+const handleLike = async (memeId: string) => {
+  if (!isConnected) {
+    alert("Please connect your wallet to like memes")
+    return
+  }
 
-    setMemes(memes.map(meme =>
-      meme.id === memeId
+  try {
+    const { likeMeme } = useMemeActions()
+    await likeMeme(parseInt(memeId))
+    
+    // Update local state optimistically
+    setMemes(memes.map(meme => 
+      meme.id === memeId 
         ? { ...meme, likes: meme.likes + 1, trendingScore: meme.trendingScore + 5 }
         : meme
     ))
-
-    // await fetch(`/api/memes/${memeId}/like`, { method: 'POST' })
+  } catch (error) {
+    console.error('Failed to like meme:', error)
+    alert('Failed to like meme. Please try again.')
   }
+}
+
+// Add tip functionality
+const handleTip = async (memeId: string, amount: string) => {
+  if (!isConnected) return
+  
+  try {
+    const { tipCreator } = useMemeActions()
+    await tipCreator(parseInt(memeId), amount)
+    alert(`Tipped ${amount} ZGS to creator!`)
+  } catch (error) {
+    console.error('Failed to tip creator:', error)
+  }
+}
 
   const handleShare = async (meme: Meme) => {
     const shareUrl = `${window.location.origin}/meme/${meme.storageHash}`
