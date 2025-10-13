@@ -137,33 +137,7 @@ export default function GeneratePage() {
     }
   }
 
-  // const initiatePayment = async () => {
-  //   if (!isConnected) {
-  //     alert("Please connect your wallet first")
-  //     return
-  //   }
 
-  //   if (chainId !== 16661 && chainId !== 16602) {
-  //     alert("Please switch to 0G Chain to use MemeForge")
-  //     return
-  //   }
-
-  //   setPaymentState({ completed: false, processing: true })
-
-  //   try {
-  //     // payment transaction later, simulation for now
-  //     await new Promise(resolve => setTimeout(resolve, 2000))
-
-  //     setPaymentState({ 
-  //       completed: true, 
-  //       processing: false 
-  //     })
-  //   } catch (error) {
-  //     console.error('Payment failed:', error)
-  //     setPaymentState({ completed: false, processing: false })
-  //     alert('Payment failed. Please try again.')
-  //   }
-  // }
 
   const generateAiOptions = async () => {
     if (!prompt.trim() || !paymentState.completed) return
@@ -243,7 +217,7 @@ export default function GeneratePage() {
         setStorageHash(data.storageHash)
         setMemeCaption(data.caption)
 
-        // Step 2: Mint on blockchain using smart contract
+        //  Mint on blockchain
         try {
           const tx = await createMeme(
             data.storageHash,
