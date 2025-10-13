@@ -30,8 +30,8 @@ contract MemeRegistry is Ownable, ReentrancyGuard {
     }
 
     // Constants
-    uint256 public constant MINT_FEE = 0.001 ether; // 0.001 ZGS
-    uint256 public constant REMIX_FEE = 0.0005 ether; // 0.0005 ZGS
+    uint256 public constant MINT_FEE = 0.001 ether; // 0.001 OG
+    uint256 public constant REMIX_FEE = 0.0005 ether; // 0.0005 OG
 
     // State variables
     uint256 public memeCounter;

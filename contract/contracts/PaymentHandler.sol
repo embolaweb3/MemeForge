@@ -8,16 +8,17 @@ contract PaymentHandler is Ownable, ReentrancyGuard {
     struct ServicePayment {
         address user;
         uint256 amount;
-        string serviceType; // "ai_generation", "storage", "mint", "remix"
+        string serviceType; // "ai_generation", "storage", "mint", "remix", "ai_and_storage_fee"
         uint256 timestamp;
         bool completed;
     }
 
     // Service fees (in wei)
-    uint256 public aiGenerationFee = 0.0003 ether; // 0.0003 0G
-    uint256 public storageFee = 0.0002 ether; // 0.0002 0G
+    uint256 public aiGenerationFee = 0.003 ether; // 0.005 0G
+    uint256 public storageFee = 0.001 ether; // 0.001 0G
     uint256 public mintFee = 0.001 ether; // 0.001 0G
     uint256 public remixFee = 0.0005 ether; // 0.0005 0G
+    uint256 public ai_and_storage_fee = aiGenerationFee +  storageFee; // 0.004 0G
 
     mapping(address => uint256) public userBalances;
     mapping(bytes32 => ServicePayment) public payments;
@@ -137,6 +138,12 @@ contract PaymentHandler is Ownable, ReentrancyGuard {
             keccak256(abi.encodePacked("remix"))
         ) {
             return remixFee;
+        }
+        else if (
+            keccak256(abi.encodePacked(_serviceType)) ==
+            keccak256(abi.encodePacked("ai_and_storage"))
+        ) {
+            return ai_and_storage_fee;
         }
         revert("Unknown service type");
     }

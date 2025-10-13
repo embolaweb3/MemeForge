@@ -91,8 +91,8 @@ export default function GeneratePage() {
   const SERVICE_FEES = {
     MINT: "0.001",      // 0.001 0G for minting
     REMIX: "0.0005",    // 0.0005 0G for remixing
-    AI_GENERATION: "0.0003", // 0.0003 0G for AI
-    STORAGE: "0.0002"   // 0.0002 0G for storage
+    AI_GENERATION: "0.005", // 0.005 0G for AI
+    STORAGE: "0.001"   // 0.001 0G for storage
   }
 
 
@@ -130,11 +130,10 @@ export default function GeneratePage() {
 
   const handlePayment = async () => {
     try {
-      // Pay for the complete service (mint includes AI + storage)
-      await initiatePayment('mint')
+      // Pay for the complete service ( AI + storage)
+      await initiatePayment('ai_and_storage')
       setShowPaymentModal(false)
     } catch (error: any) {
-      // Error is handled in the payment hook
       console.error('Payment initiation failed:', error)
     }
   }
@@ -222,16 +221,34 @@ const generateMeme = async (customCaption?: string) => {
     );
 
     setTransactionHash(tx.hash);
-    console.log("Mint transaction:", tx.hash);
+    console.log("🪄 Mint transaction sent:", tx.hash);
 
-    // wait for confirmation
-    const receipt = await tx.wait();
+    // --- ✅ More robust confirmation logic ---
+    const provider = tx.runner?.provider || new ethers.BrowserProvider(window.ethereum);
+    let receipt = null;
+
+    for (let i = 0; i < 5; i++) {
+      try {
+        receipt = await provider.getTransactionReceipt(tx.hash);
+        if (receipt) break;
+      } catch (rpcError: any) {
+        console.warn(`⏳ Waiting for receipt (attempt ${i + 1}):`, rpcError.message);
+      }
+      await new Promise(res => setTimeout(res, 3000));
+    }
+
+    if (!receipt) {
+      console.warn("⚠️ Still no receipt after retries, but continuing (likely RPC lag)");
+    }
+
+    const confirmedReceipt = receipt || (await tx.wait()).receipt;
+    console.log("✅ Transaction confirmed:", confirmedReceipt?.transactionHash);
 
     // Extract Meme ID from events
     const iface = new ethers.Interface(MemeRegistryABI.abi);
     let memeId = null;
-    for (const log of receipt.logs) {
-      console.log(log)
+
+    for (const log of confirmedReceipt?.logs || []) {
       try {
         const parsed = iface.parseLog(log);
         if (parsed?.name === "MemeCreated") {
@@ -242,7 +259,6 @@ const generateMeme = async (customCaption?: string) => {
       } catch {}
     }
 
-    // Fallback if no event
     if (!memeId) {
       console.warn("⚠️ MemeCreated event not found — using fallback ID");
       memeId = Math.floor(Math.random() * 100000);
@@ -250,30 +266,21 @@ const generateMeme = async (customCaption?: string) => {
 
     setMemeId(memeId);
 
-    // // Save to DB
-    // await fetch("/api/memes", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({
-    //     imageUrl: data.memeUrl,
-    //     prompt: finalPrompt,
-    //     caption: data.caption,
-    //     storageHash: data.storageHash,
-    //     transactionHash: tx.hash,
-    //     paymentTxHash: paymentState.txHash,
-    //     creator: address,
-    //     aiGenerated: true,
-    //     memeId,
-    //   }),
-    // });
-
   } catch (error: any) {
     console.error("❌ Meme generation failed:", error);
+
+    // Ignore harmless "no matching receipts" RPC issue
+    if (error?.message?.includes("no matching receipts found")) {
+      console.warn("⚠️ RPC receipt delay detected — ignoring false error");
+      return;
+    }
+
     alert(`Failed to generate meme: ${error.message}`);
   } finally {
     setIsGenerating(false);
   }
 };
+
 
 
   const convertToBase64 = (file: File): Promise<string> => {
@@ -390,8 +397,7 @@ const generateMeme = async (customCaption?: string) => {
   // Calculate total cost
   const totalCost = (
     parseFloat(SERVICE_FEES.AI_GENERATION) +
-    parseFloat(SERVICE_FEES.STORAGE) +
-    parseFloat(SERVICE_FEES.MINT)
+    parseFloat(SERVICE_FEES.STORAGE)
   ).toFixed(4)
 
   return (

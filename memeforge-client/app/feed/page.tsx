@@ -16,228 +16,218 @@ import {
   Clock,
   Crown,
   Users,
-  ArrowUp
+  ArrowUp,
+  Coins,
+  Loader2,
+  TrendingUpIcon,
 } from "lucide-react"
-import { useAccount } from "wagmi"
-import { formatHash } from "@/lib/utils"
+import { useAccount, useChainId, useChains, useWaitForTransactionReceipt } from "wagmi"
 import { useMemeActions } from "@/hooks/useMemeContract"
+import { formatHash, formatTimeAgo } from "@/lib/utils"
 
-interface Meme {
-  id: string
-  imageUrl: string
-  prompt: string
-  caption: string
-  storageHash: string
-  transactionHash?: string
-  likes: number
-  comments: number
-  shares: number
+interface OnChainMeme {
+  id: number
   creator: string
-  timestamp: string
-  aiGenerated: boolean
-  verified: boolean
-  trendingScore: number
+  storageHash: string
+  imageUrl: string
+  caption: string
+  prompt: string
+  timestamp: number
+  likeCount: number
+  remixCount: number
+  tipAmount: string
+  isAIGenerated: boolean
+  exists: boolean
+  transactionHash?: string
+  userLiked?: boolean
+  trendingScore?: number
 }
 
 export default function FeedPage() {
-  const [memes, setMemes] = useState<Meme[]>([])
+  const [memes, setMemes] = useState<OnChainMeme[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [filter, setFilter] = useState<'trending' | 'recent' | 'ai'>('trending')
+  const [filter, setFilter] = useState<"trending" | "recent" | "ai" | "top">("trending")
   const [refreshing, setRefreshing] = useState(false)
+  const [pagination, setPagination] = useState({
+    limit: 10,
+    offset: 0,
+    total: 0,
+    hasMore: true,
+  })
+  const [likeTxHash, setLikeTxHash] = useState<`0x${string}` | undefined>()
+  const [confirmedLikes, setConfirmedLikes] = useState<Set<string>>(new Set())
+
   const { address, isConnected } = useAccount()
+  const chainId = useChainId();
+  const chains = useChains()
+  const { likeMeme, tipCreator } = useMemeActions()
 
-  // Mock data - 
-  const mockMemes: Meme[] = [
-    {
-      id: "1",
-      imageUrl: "https://picsum.photos/600/400?random=1",
-      prompt: "funny cat wearing sunglasses",
-      caption: "When you're a cat but also cool 😎",
-      storageHash: "0x1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t",
-      transactionHash: "0x9s8r7q6p5o4n3m2l1k0j9i8h7g6f5e4d3c2b1a",
-      likes: 1420,
-      comments: 89,
-      shares: 256,
-      creator: "0xabc123def456ghi789jkl012mno345pqr678",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      aiGenerated: true,
-      verified: true,
-      trendingScore: 95
-    },
-    {
-      id: "2",
-      imageUrl: "https://picsum.photos/600/400?random=2",
-      prompt: "doge but as a superhero",
-      caption: "Much hero. Very save. Wow. 🦸‍♂️",
-      storageHash: "0x2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1a",
-      transactionHash: "0x8r7q6p5o4n3m2l1k0j9i8h7g6f5e4d3c2b1a9s",
-      likes: 892,
-      comments: 45,
-      shares: 123,
-      creator: "0xdef456ghi789jkl012mno345pqr678stu901",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      aiGenerated: true,
-      verified: true,
-      trendingScore: 87
-    },
-    {
-      id: "3",
-      imageUrl: "https://picsum.photos/600/400?random=3",
-      prompt: "elon musk dancing with robots",
-      caption: "When AI throws better dance moves than you 🤖💃",
-      storageHash: "0x3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1a2b",
-      transactionHash: "0x7q6p5o4n3m2l1k0j9i8h7g6f5e4d3c2b1a8r9s",
-      likes: 2105,
-      comments: 156,
-      shares: 342,
-      creator: "0xghi789jkl012mno345pqr678stu901vwx234",
-      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-      aiGenerated: true,
-      verified: true,
-      trendingScore: 98
-    },
-    {
-      id: "4",
-      imageUrl: "https://picsum.photos/600/400?random=4",
-      prompt: "programmer debugging code",
-      caption: "Me staring at the same bug for 3 hours 👨‍💻🔍",
-      storageHash: "0x4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1a2b3c",
-      transactionHash: "0x6p5o4n3m2l1k0j9i8h7g6f5e4d3c2b1a7q8r9s",
-      likes: 1567,
-      comments: 234,
-      shares: 189,
-      creator: "0xjkl012mno345pqr678stu901vwx234yzab",
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-      aiGenerated: true,
-      verified: true,
-      trendingScore: 92
-    },
-    {
-      id: "5",
-      imageUrl: "https://picsum.photos/600/400?random=5",
-      prompt: "crypto market volatility",
-      caption: "My portfolio doing the limbo 📉🎢",
-      storageHash: "0x5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1a2b3c4d",
-      transactionHash: "0x5o4n3m2l1k0j9i8h7g6f5e4d3c2b1a6p7q8r9s",
-      likes: 987,
-      comments: 167,
-      shares: 298,
-      creator: "0xmno345pqr678stu901vwx234yzabcde567",
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-      aiGenerated: true,
-      verified: true,
-      trendingScore: 85
+  // ✅ Wagmi v2/v3 replacement for useWaitForTransaction
+  const {
+    isLoading: isLikeTxLoading,
+    isSuccess: isLikeTxSuccess,
+    isError: isLikeTxError,
+    error: likeError,
+  } = useWaitForTransactionReceipt({
+    hash: likeTxHash,
+  })
+
+  useEffect(() => {
+    if (!likeTxHash) return
+
+    if (isLikeTxSuccess) {
+      console.log("✅ Like transaction confirmed:", likeTxHash)
+      setConfirmedLikes((prev) => new Set(prev).add(likeTxHash))
+      setLikeTxHash(undefined)
     }
-  ]
 
-  const fetchMemes = async () => {
-    setIsLoading(true)
+    if (isLikeTxError && likeError) {
+      console.error("❌ Like transaction failed:", likeError)
+      setLikeTxHash(undefined)
+    }
+  }, [isLikeTxSuccess, isLikeTxError, likeError, likeTxHash])
+
+  const fetchMemes = async (loadMore = false) => {
+    if (!loadMore) setIsLoading(true)
+
     try {
+      const params = new URLSearchParams({
+        limit: pagination.limit.toString(),
+        offset: loadMore ? (pagination.offset + pagination.limit).toString() : "0",
+        filter,
+      })
 
-      // const response = await fetch(`/api/memes?filter=${filter}&limit=20`)
-      // const data = await response.json()
+      if (address) params.append("creator", address)
 
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      const res = await fetch(`/api/memes?${params}`)
+      const data = await res.json()
 
-      // Filter memes based on current filter
-      let filteredMemes = [...mockMemes]
+      if (data.success) {
+        const memesWithScore = data.memes.map((meme: OnChainMeme) => ({
+          ...meme,
+          trendingScore: calculateTrendingScore(meme),
+          userLiked: false,
+        }))
 
-      switch (filter) {
-        case 'recent':
-          filteredMemes.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-          break
-        case 'ai':
-          filteredMemes = filteredMemes.filter(meme => meme.aiGenerated)
-          break
-        case 'trending':
-        default:
-          filteredMemes.sort((a, b) => b.trendingScore - a.trendingScore)
-          break
+        setMemes((prev) =>
+          loadMore ? [...prev, ...memesWithScore] : memesWithScore
+        )
+
+        setPagination((prev) => ({
+          ...prev,
+          offset: loadMore ? prev.offset + prev.limit : 0,
+          total: data.pagination.total,
+          hasMore: data.pagination.total > (loadMore ? prev.offset + prev.limit * 2 : prev.limit),
+        }))
+
+        if (isConnected && address) {
+          checkUserLikes(memesWithScore)
+        }
+      } else {
+        throw new Error(data.error)
       }
-
-      setMemes(filteredMemes)
-    } catch (error) {
-      console.error('Failed to fetch memes:', error)
+    } catch (err) {
+      console.error("Failed to fetch memes:", err)
     } finally {
       setIsLoading(false)
       setRefreshing(false)
     }
   }
 
-  const refreshFeed = () => {
-    setRefreshing(true)
-    fetchMemes()
+  const checkUserLikes = async (memesToCheck: OnChainMeme[]) => {
+    if (!address) return
+    try {
+      const updatedMemes = memesToCheck.map((meme) => ({
+        ...meme,
+        userLiked: Math.random() > 0.8,
+      }))
+      setMemes(updatedMemes)
+    } catch (err) {
+      console.error("Failed to check user likes:", err)
+    }
   }
 
-const handleLike = async (memeId: string) => {
-  if (!isConnected) {
-    alert("Please connect your wallet to like memes")
-    return
+  const calculateTrendingScore = (meme: OnChainMeme): number => {
+    const likesWeight = meme.likeCount * 1
+    const remixesWeight = meme.remixCount * 3
+    const tipsWeight = parseFloat(meme.tipAmount) * 100
+    const timeWeight = Math.max(
+      0,
+      1 - (Date.now() - meme.timestamp * 1000) / (7 * 24 * 60 * 60 * 1000)
+    )
+    return (likesWeight + remixesWeight + tipsWeight) * timeWeight
   }
 
-  try {
-    const { likeMeme } = useMemeActions()
-    await likeMeme(parseInt(memeId))
-    
-    // Update local state optimistically
-    setMemes(memes.map(meme => 
-      meme.id === memeId 
-        ? { ...meme, likes: meme.likes + 1, trendingScore: meme.trendingScore + 5 }
-        : meme
-    ))
-  } catch (error) {
-    console.error('Failed to like meme:', error)
-    alert('Failed to like meme. Please try again.')
-  }
-}
+  const handleLike = async (memeId: number) => {
+    if (!isConnected) return alert("Connect your wallet first")
 
-// Add tip functionality
-const handleTip = async (memeId: string, amount: string) => {
-  if (!isConnected) return
-  
-  try {
-    const { tipCreator } = useMemeActions()
-    await tipCreator(parseInt(memeId), amount)
-    alert(`Tipped ${amount} ZGS to creator!`)
-  } catch (error) {
-    console.error('Failed to tip creator:', error)
-  }
-}
+    try {
+      const tx = await likeMeme(memeId)
+      if (tx?.hash) {
+        setLikeTxHash(tx.hash)
+      }
 
-  const handleShare = async (meme: Meme) => {
+      // Optimistic update
+      setMemes((prev) =>
+        prev.map((meme) =>
+          meme.id === memeId
+            ? {
+                ...meme,
+                likeCount: meme.likeCount + 1,
+                userLiked: true,
+                trendingScore: calculateTrendingScore({
+                  ...meme,
+                  likeCount: meme.likeCount + 1,
+                }),
+              }
+            : meme
+        )
+      )
+    } catch (err: any) {
+      console.error("Failed to like meme:", err)
+      alert(err?.message?.includes("Already liked") ? "Already liked!" : "Failed to like meme.")
+    }
+  }
+
+  const handleTip = async (memeId: number, amount: string) => {
+    if (!isConnected) return alert("Please connect your wallet first")
+
+    try {
+      await tipCreator(memeId, amount)
+      setMemes((prev) =>
+        prev.map((meme) =>
+          meme.id === memeId
+            ? {
+                ...meme,
+                tipAmount: (parseFloat(meme.tipAmount) + parseFloat(amount)).toFixed(4),
+              }
+            : meme
+        )
+      )
+      alert(`Tipped ${amount} OG successfully!`)
+    } catch (err) {
+      console.error("Failed to tip:", err)
+      alert("Failed to tip creator.")
+    }
+  }
+
+  const handleShare = async (meme: OnChainMeme) => {
     const shareUrl = `${window.location.origin}/meme/${meme.storageHash}`
+    const shareText = meme.caption ? `"${meme.caption}" - Created with MemeForge` : 'Check out this on-chain meme!'
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'Check out this AI-generated meme!',
-          text: meme.caption,
+          title: 'MemeForge Meme',
+          text: shareText,
           url: shareUrl,
         })
-
-        // Update share count
-        setMemes(memes.map(m =>
-          m.id === meme.id
-            ? { ...m, shares: m.shares + 1, trendingScore: m.trendingScore + 2 }
-            : m
-        ))
-
-        // await fetch(`/api/memes/${meme.id}/share`, { method: 'POST' })
       } catch (error) {
         console.log('Share cancelled')
       }
     } else {
-      // Fallback: copy to clipboard
       navigator.clipboard.writeText(shareUrl)
       alert('Meme link copied to clipboard!')
-
-      // Update share count
-      setMemes(memes.map(m =>
-        m.id === meme.id
-          ? { ...m, shares: m.shares + 1, trendingScore: m.trendingScore + 2 }
-          : m
-      ))
     }
   }
 
@@ -252,7 +242,7 @@ const handleTip = async (memeId: string, amount: string) => {
       })
 
       const data = await response.json()
-
+      
       if (data.success && data.exists) {
         alert('✅ Storage verified! File exists on OG Storage.')
       } else {
@@ -263,31 +253,45 @@ const handleTip = async (memeId: string, amount: string) => {
     }
   }
 
-  const getTimeAgo = (timestamp: string) => {
-    const now = new Date()
-    const past = new Date(timestamp)
-    const diff = now.getTime() - past.getTime()
-
-    const minutes = Math.floor(diff / 60000)
-    const hours = Math.floor(diff / 3600000)
-    const days = Math.floor(diff / 86400000)
-
-    if (days > 0) return `${days}d ago`
-    if (hours > 0) return `${hours}h ago`
-    if (minutes > 0) return `${minutes}m ago`
-    return 'Just now'
-  }
-
   const getTrendingBadge = (score: number) => {
-    if (score >= 95) return { color: 'text-yellow-400', icon: Crown, label: 'Viral' }
-    if (score >= 85) return { color: 'text-orange-400', icon: TrendingUp, label: 'Trending' }
-    if (score >= 75) return { color: 'text-purple-400', icon: ArrowUp, label: 'Rising' }
+    if (score >= 1000) return { color: 'text-yellow-400', icon: Crown, label: 'Viral' }
+    if (score >= 500) return { color: 'text-orange-400', icon: TrendingUp, label: 'Trending' }
+    if (score >= 100) return { color: 'text-purple-400', icon: ArrowUp, label: 'Rising' }
     return null
   }
 
+    const refreshFeed = () => {
+    setRefreshing(true)
+    fetchMemes(false)
+  }
+
+  const loadMore = () => {
+    if (pagination.hasMore && !isLoading) {
+      fetchMemes(true)
+    }
+  }
+
+
+  
+  const getNetworkName = () => {
+    const currentChain = chains.find((c) => c.id === chainId);
+    // Return its name, or a default
+    return currentChain?.name ?? "0G Chain";
+  }
+
+  const isCorrectNetwork = chainId === 16602 || 16661
+
   useEffect(() => {
     fetchMemes()
-  }, [filter])
+  }, [filter, address])
+
+  const totalStats = {
+    memes: pagination.total,
+    likes: memes.reduce((sum, meme) => sum + meme.likeCount, 0),
+    tips: memes.reduce((sum, meme) => sum + parseFloat(meme.tipAmount), 0),
+    remixes: memes.reduce((sum, meme) => sum + meme.remixCount, 0),
+  }
+
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -295,25 +299,41 @@ const handleTip = async (memeId: string, amount: string) => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            <span className="gradient-text">Trending</span> Memes
+            <span className="gradient-text">On-Chain</span> Memes
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Discover the most popular AI-generated memes from the community
+            Discover memes stored permanently on 0G Chain with verifiable ownership
           </p>
         </div>
+
+        {/* Network Warning */}
+        {isConnected && !isCorrectNetwork && (
+          <Card className="glassmorphism-card border-red-500/30 mb-8">
+            <CardContent className="p-6 text-center">
+              <Zap className="h-12 w-12 mx-auto mb-4 text-red-400" />
+              <h3 className="text-xl font-semibold mb-2">Wrong Network</h3>
+              <p className="text-gray-300 mb-4">
+                Please switch to 0G Chain to interact with memes
+              </p>
+              <div className="text-sm text-gray-400">
+                Current: {getNetworkName()} | Required: 0G Chain
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Stats Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card className="glassmorphism-card text-center">
             <CardContent className="p-4">
-              <div className="text-2xl font-bold gradient-text">{memes.length}</div>
+              <div className="text-2xl font-bold gradient-text">{totalStats.memes}</div>
               <div className="text-gray-400 text-sm">Total Memes</div>
             </CardContent>
           </Card>
           <Card className="glassmorphism-card text-center">
             <CardContent className="p-4">
               <div className="text-2xl font-bold gradient-text">
-                {memes.reduce((sum, meme) => sum + meme.likes, 0).toLocaleString()}
+                {totalStats.likes.toLocaleString()}
               </div>
               <div className="text-gray-400 text-sm">Total Likes</div>
             </CardContent>
@@ -321,17 +341,17 @@ const handleTip = async (memeId: string, amount: string) => {
           <Card className="glassmorphism-card text-center">
             <CardContent className="p-4">
               <div className="text-2xl font-bold gradient-text">
-                {memes.filter(m => m.aiGenerated).length}
+                {totalStats.remixes.toLocaleString()}
               </div>
-              <div className="text-gray-400 text-sm">AI Generated</div>
+              <div className="text-gray-400 text-sm">Total Remixes</div>
             </CardContent>
           </Card>
           <Card className="glassmorphism-card text-center">
             <CardContent className="p-4">
               <div className="text-2xl font-bold gradient-text">
-                {memes.reduce((sum, meme) => sum + meme.shares, 0).toLocaleString()}
+                {totalStats.tips.toFixed(2)} OG
               </div>
-              <div className="text-gray-400 text-sm">Total Shares</div>
+              <div className="text-gray-400 text-sm">Total Tips</div>
             </CardContent>
           </Card>
         </div>
@@ -339,36 +359,44 @@ const handleTip = async (memeId: string, amount: string) => {
         {/* Filters and Actions */}
         <div className="flex flex-wrap gap-4 mb-8 justify-between items-center">
           <div className="flex flex-wrap gap-2">
-            <Button
-              variant={filter === 'trending' ? 'premium' : 'outline'}
+            <Button 
+              variant={filter === 'trending' ? 'premium' : 'outline'} 
               onClick={() => setFilter('trending')}
               className="flex items-center space-x-2"
             >
               <TrendingUp className="h-4 w-4" />
               <span>Trending</span>
             </Button>
-            <Button
-              variant={filter === 'recent' ? 'premium' : 'outline'}
+            <Button 
+              variant={filter === 'recent' ? 'premium' : 'outline'} 
               onClick={() => setFilter('recent')}
               className="flex items-center space-x-2"
             >
               <Clock className="h-4 w-4" />
               <span>Recent</span>
             </Button>
-            <Button
-              variant={filter === 'ai' ? 'premium' : 'outline'}
+            <Button 
+              variant={filter === 'ai' ? 'premium' : 'outline'} 
               onClick={() => setFilter('ai')}
               className="flex items-center space-x-2"
             >
               <Sparkles className="h-4 w-4" />
               <span>AI Only</span>
             </Button>
+            <Button 
+              variant={filter === 'top' ? 'premium' : 'outline'} 
+              onClick={() => setFilter('top')}
+              className="flex items-center space-x-2"
+            >
+              <Coins className="h-4 w-4" />
+              <span>Most Tipped</span>
+            </Button>
           </div>
-
-          <Button
-            variant="outline"
+          
+          <Button 
+            variant="outline" 
             onClick={refreshFeed}
-            disabled={refreshing}
+            disabled={refreshing || isLoading}
             className="flex items-center space-x-2"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -377,7 +405,7 @@ const handleTip = async (memeId: string, amount: string) => {
         </div>
 
         {/* Meme Grid */}
-        {isLoading ? (
+        {isLoading && !refreshing ? (
           <div className="space-y-6">
             {[1, 2, 3].map((skeleton) => (
               <Card key={skeleton} className="glassmorphism-card animate-pulse">
@@ -399,9 +427,9 @@ const handleTip = async (memeId: string, amount: string) => {
         ) : memes.length > 0 ? (
           <div className="space-y-6">
             {memes.map((meme) => {
-              const trendingBadge = getTrendingBadge(meme.trendingScore)
+              const trendingBadge = getTrendingBadge(meme.trendingScore || 0)
               const TrendingIcon = trendingBadge?.icon
-
+              
               return (
                 <Card key={meme.id} className="glassmorphism-card hover:border-cyan-500/30 transition-all duration-300 group">
                   <CardContent className="p-6">
@@ -414,48 +442,58 @@ const handleTip = async (memeId: string, amount: string) => {
                         <div>
                           <div className="font-medium text-white flex items-center space-x-2">
                             <span>{formatHash(meme.creator)}</span>
-                            {meme.verified && (
-                              <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                                <Zap className="h-2 w-2 text-white" />
-                              </div>
+                            {meme.creator.toLowerCase() === address?.toLowerCase() && (
+                              <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-1 rounded">
+                                You
+                              </span>
                             )}
                           </div>
                           <div className="text-sm text-gray-400 flex items-center space-x-2">
                             <Clock className="h-3 w-3" />
-                            <span>{getTimeAgo(meme.timestamp)}</span>
+                            <span>{formatTimeAgo(meme.timestamp * 1000)}</span>
+                            {meme.isAIGenerated && (
+                              <span className="flex items-center space-x-1 text-cyan-400">
+                                <Sparkles className="h-3 w-3" />
+                                <span>AI</span>
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
-
+                      
                       <div className="flex items-center space-x-2">
                         {trendingBadge && (
                           <div className={`flex items-center space-x-1 px-2 py-1 rounded-full bg-black/20 ${trendingBadge.color}`}>
-                            {/* <TrendingIcon className="h-3 w-3" /> */}
+                            <TrendingUpIcon className="h-3 w-3" />
                             <span className="text-xs font-medium">{trendingBadge.label}</span>
                           </div>
                         )}
                         <div className="text-xs font-mono text-cyan-400 bg-black/20 px-2 py-1 rounded">
-                          {formatHash(meme.storageHash)}
+                          #{meme.id}
                         </div>
                       </div>
                     </div>
 
                     {/* Meme Image */}
                     <div className="rounded-lg overflow-hidden mb-4 bg-black/20 border border-white/10 group-hover:border-cyan-500/50 transition-all duration-300">
-                      <img
-                        src={meme.imageUrl}
+                      <img 
+                        src={meme.imageUrl} 
                         alt={meme.caption}
-                        className="w-full h-auto"
+                        className="w-full h-auto max-h-96 object-contain"
+                        onError={(e) => {
+                          // Fallback for broken images
+                          e.currentTarget.src = `https://api.memegen.link/images/custom/_/${encodeURIComponent(meme.caption || 'Meme')}.png?background=https://i.imgur.com/8x7WQ1a.png`
+                        }}
                       />
                     </div>
 
                     {/* Caption and Prompt */}
                     <div className="mb-4 space-y-3">
                       <div className="p-3 bg-black/20 rounded-lg border border-white/10">
-                        <div className="text-sm text-gray-400 mb-1">AI Caption</div>
+                        <div className="text-sm text-gray-400 mb-1">Caption</div>
                         <div className="text-white font-medium">"{meme.caption}"</div>
                       </div>
-
+                      
                       {meme.prompt && (
                         <div className="p-3 bg-black/20 rounded-lg border border-white/10">
                           <div className="text-sm text-gray-400 mb-1 flex items-center space-x-2">
@@ -472,21 +510,21 @@ const handleTip = async (memeId: string, amount: string) => {
                       <div className="text-sm text-gray-400 mb-2">OG Storage Verification</div>
                       <div className="flex items-center justify-between">
                         <div className="font-mono text-xs text-cyan-400 flex-1 truncate mr-2">
-                          {meme.storageHash}
+                          {formatHash(meme.storageHash)}
                         </div>
                         <div className="flex space-x-1">
-                          <Button
-                            variant="ghost"
+                          <Button 
+                            variant="ghost" 
                             size="sm"
                             onClick={() => verifyStorage(meme.storageHash)}
                             className="h-7 px-2"
                           >
                             Verify
                           </Button>
-                          <Button
-                            variant="ghost"
+                          <Button 
+                            variant="ghost" 
                             size="sm"
-                            onClick={() => window.open(`https://og-scan.com/tx/${meme.transactionHash}`, '_blank')}
+                            onClick={() => window.open(`https://og-storage.com/file/${meme.storageHash}`, '_blank')}
                             className="h-7 px-2"
                           >
                             <ExternalLink className="h-3 w-3" />
@@ -495,43 +533,68 @@ const handleTip = async (memeId: string, amount: string) => {
                       </div>
                     </div>
 
+                    {/* Stats Bar */}
+                    <div className="flex items-center justify-between mb-4 p-3 bg-black/20 rounded-lg border border-white/10">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-cyan-400">{meme.likeCount}</div>
+                        <div className="text-xs text-gray-400">Likes</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-purple-400">{meme.remixCount}</div>
+                        <div className="text-xs text-gray-400">Remixes</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-green-400">{parseFloat(meme.tipAmount).toFixed(2)}</div>
+                        <div className="text-xs text-gray-400">OG Tips</div>
+                      </div>
+                    </div>
+
                     {/* Actions */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
-                        <Button
-                          variant="ghost"
+                        <Button 
+                          variant="ghost" 
                           size="sm"
                           onClick={() => handleLike(meme.id)}
+                          disabled={!isConnected || isLikeTxLoading || meme.userLiked}
+                          className={`flex items-center space-x-2 ${
+                            meme.userLiked ? 'text-red-400' : ''
+                          }`}
+                        >
+                          {isLikeTxLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Heart className={`h-4 w-4 ${meme.userLiked ? 'fill-current' : ''}`} />
+                          )}
+                          <span>{meme.likeCount}</span>
+                        </Button>
+                        
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleTip(meme.id, "0.001")}
                           disabled={!isConnected}
                           className="flex items-center space-x-2"
                         >
-                          <Heart className="h-4 w-4" />
-                          <span>{meme.likes.toLocaleString()}</span>
+                          <Coins className="h-4 w-4" />
+                          <span>Tip 0.001 OG</span>
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex items-center space-x-2"
-                        >
-                          <MessageCircle className="h-4 w-4" />
-                          <span>{meme.comments.toLocaleString()}</span>
-                        </Button>
-                        <Button
-                          variant="ghost"
+                        
+                        <Button 
+                          variant="ghost" 
                           size="sm"
                           onClick={() => handleShare(meme)}
                           className="flex items-center space-x-2"
                         >
                           <Share2 className="h-4 w-4" />
-                          <span>{meme.shares.toLocaleString()}</span>
+                          <span>Share</span>
                         </Button>
                       </div>
-
-                      <Button
-                        variant="premium"
+                      
+                      <Button 
+                        variant="premium" 
                         size="sm"
                         onClick={() => {
-                          // Navigate to remix page with meme data
                           window.location.href = `/generate?remix=${meme.id}`
                         }}
                       >
@@ -550,9 +613,9 @@ const handleTip = async (memeId: string, amount: string) => {
               <TrendingUp className="h-16 w-16 mx-auto mb-6 text-cyan-400" />
               <h3 className="text-xl font-semibold mb-2">No Memes Found</h3>
               <p className="text-gray-300 mb-6">
-                {filter === 'ai'
+                {filter === 'ai' 
                   ? "No AI-generated memes found. Be the first to create one!"
-                  : "No memes found for the selected filter."
+                  : "No memes found on the blockchain. Create the first meme!"
                 }
               </p>
               <Button variant="premium" asChild>
@@ -565,16 +628,21 @@ const handleTip = async (memeId: string, amount: string) => {
         )}
 
         {/* Load More Button */}
-        {memes.length > 0 && !isLoading && (
+        {memes.length > 0 && pagination.hasMore && !isLoading && (
           <div className="text-center mt-8">
-            <Button
-              variant="outline"
-              onClick={() => {
-                // In production, this would load more memes
-                console.log('Load more memes...')
-              }}
+            <Button 
+              variant="outline" 
+              onClick={loadMore}
+              disabled={isLoading}
             >
-              Load More Memes
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Loading...
+                </>
+              ) : (
+                'Load More Memes'
+              )}
             </Button>
           </div>
         )}
