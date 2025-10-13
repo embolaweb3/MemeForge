@@ -27,6 +27,8 @@ import { useMemeActions } from "@/hooks/useMemeContract"
 import { usePayment } from "@/hooks/usePayment"
 import { ethers } from "ethers"
 import { formatHash } from "@/lib/utils"
+import MemeRegistryABI from "@/lib/abis/MemeRegistry.json";
+
 
 
 export default function GeneratePage() {
@@ -174,101 +176,105 @@ export default function GeneratePage() {
     }
   }
 
-  const generateMeme = async (customCaption?: string) => {
-    if ((!prompt && !selectedImage) || !paymentState.completed) return
+const generateMeme = async (customCaption?: string) => {
+  if ((!prompt && !selectedImage) || !paymentState.completed) return;
 
-    setIsGenerating(true)
-    setGeneratedMeme(null)
-    setStorageHash(null)
-    setTransactionHash(null)
-    setMemeCaption(null)
-    setMemeId(null)
+  setIsGenerating(true);
+  setGeneratedMeme(null);
+  setStorageHash(null);
+  setTransactionHash(null);
+  setMemeCaption(null);
+  setMemeId(null);
 
-    try {
-      // Convert image to base64 if uploaded
-      let imageBase64 = null
-      if (selectedImage) {
-        imageBase64 = await convertToBase64(selectedImage)
-      }
+  try {
+    let imageBase64 = null;
+    if (selectedImage) imageBase64 = await convertToBase64(selectedImage);
 
-      const finalPrompt = customCaption || prompt
+    const finalPrompt = customCaption || prompt;
+    console.log("🧠 Generating meme via OG services...");
 
-      console.log('Generating meme with OG services...')
+    const response = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        prompt: finalPrompt,
+        image: imageBase64,
+        creator: address,
+        userAddress: address,
+        paymentTxHash: paymentState.txHash,
+      }),
+    });
 
-      // Step 1: Generate meme using OG services
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: finalPrompt,
-          image: imageBase64,
-          creator: address,
-          userAddress: address,
-          paymentTxHash: paymentState.txHash // Link to payment
-        })
-      })
+    const data = await response.json();
+    if (!data.success) throw new Error(data.error || "Failed to generate meme");
 
-      const data = await response.json()
+    setGeneratedMeme(data.memeUrl);
+    setStorageHash(data.storageHash);
+    setMemeCaption(data.caption);
 
-      if (data.success) {
-        setGeneratedMeme(data.memeUrl)
-        setStorageHash(data.storageHash)
-        setMemeCaption(data.caption)
+    // Mint meme
+    const tx = await createMeme(
+      data.storageHash,
+      data.memeUrl,
+      data.caption,
+      finalPrompt,
+      true // AI generated
+    );
 
-        //  Mint on blockchain
-        try {
-          const tx = await createMeme(
-            data.storageHash,
-            data.memeUrl,
-            data.caption,
-            finalPrompt,
-            true // AI generated
-          )
+    setTransactionHash(tx.hash);
+    console.log("Mint transaction:", tx.hash);
 
-          setTransactionHash(tx.hash)
-          console.log('Meme minting transaction:', tx.hash)
+    // wait for confirmation
+    const receipt = await tx.wait();
 
-          // Extract meme ID from transaction events (in real implementation)
-          // For now, we'll simulate getting the meme ID
-          const simulatedMemeId = Math.floor(Math.random() * 1000) + 1
-          setMemeId(simulatedMemeId)
-
-          // Store meme in our database
-          await fetch('/api/memes', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              imageUrl: data.memeUrl,
-              prompt: finalPrompt,
-              caption: data.caption,
-              storageHash: data.storageHash,
-              transactionHash: tx.hash,
-              paymentTxHash: paymentState.txHash,
-              creator: address,
-              aiGenerated: true,
-              memeId: simulatedMemeId
-            })
-          })
-
-        } catch (contractError: any) {
-          console.error('Smart contract error:', contractError)
-          alert('Meme generated but failed to mint on blockchain. You can still download and share it.')
+    // Extract Meme ID from events
+    const iface = new ethers.Interface(MemeRegistryABI.abi);
+    let memeId = null;
+    for (const log of receipt.logs) {
+      console.log(log)
+      try {
+        const parsed = iface.parseLog(log);
+        if (parsed?.name === "MemeCreated") {
+          memeId = parsed.args[0].toString();
+          console.log("✅ Meme ID from event:", memeId);
+          break;
         }
-
-      } else {
-        throw new Error(data.error || 'Unknown error occurred')
-      }
-    } catch (error: any) {
-      console.error('Failed to generate meme:', error)
-      alert(`Failed to generate meme: ${error.message}`)
-    } finally {
-      setIsGenerating(false)
+      } catch {}
     }
+
+    // Fallback if no event
+    if (!memeId) {
+      console.warn("⚠️ MemeCreated event not found — using fallback ID");
+      memeId = Math.floor(Math.random() * 100000);
+    }
+
+    setMemeId(memeId);
+
+    // // Save to DB
+    // await fetch("/api/memes", {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({
+    //     imageUrl: data.memeUrl,
+    //     prompt: finalPrompt,
+    //     caption: data.caption,
+    //     storageHash: data.storageHash,
+    //     transactionHash: tx.hash,
+    //     paymentTxHash: paymentState.txHash,
+    //     creator: address,
+    //     aiGenerated: true,
+    //     memeId,
+    //   }),
+    // });
+
+  } catch (error: any) {
+    console.error("❌ Meme generation failed:", error);
+    alert(`Failed to generate meme: ${error.message}`);
+  } finally {
+    setIsGenerating(false);
   }
+};
+
 
   const convertToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
