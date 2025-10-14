@@ -59,15 +59,9 @@ export function usePayment() {
     });
 
     try {
-      let requiredFee: any
-      if (serviceType == 'ai_and_storage') {
-        const ai_service = await paymentHandler.getServiceFee('ai_generation');
-        const storage_service = await paymentHandler.getServiceFee('storage');
-        requiredFee = ai_service + storage_service
-      }
-      else {
-        requiredFee = await paymentHandler.getServiceFee(serviceType);
-      }
+     
+      console.log('checker',serviceType)
+      const requiredFee = await paymentHandler.getServiceFee(serviceType);
 
       console.log(`Paying ${ethers.formatEther(requiredFee)} OG for ${serviceType}`);
 

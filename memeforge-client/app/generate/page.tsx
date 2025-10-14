@@ -130,7 +130,7 @@ export default function GeneratePage() {
 
   const handlePayment = async () => {
     try {
-      // Pay for the complete service ( AI + storage)
+      // Pay for the complete service
       await initiatePayment('ai_and_storage')
       setShowPaymentModal(false)
     } catch (error: any) {
@@ -397,7 +397,8 @@ const generateMeme = async (customCaption?: string) => {
   // Calculate total cost
   const totalCost = (
     parseFloat(SERVICE_FEES.AI_GENERATION) +
-    parseFloat(SERVICE_FEES.STORAGE)
+    parseFloat(SERVICE_FEES.STORAGE)+
+    parseFloat(SERVICE_FEES.MINT)
   ).toFixed(4)
 
   return (
@@ -525,7 +526,7 @@ const generateMeme = async (customCaption?: string) => {
               <CreditCard className="h-12 w-12 mx-auto mb-4 text-yellow-400" />
               <h3 className="text-xl font-semibold mb-2">Payment Required</h3>
               <p className="text-gray-300 mb-4">
-                Pay {totalCost} OG to use AI generation and on-chain storage services
+                Pay {Number(totalCost) - Number(SERVICE_FEES.MINT) } OG to use AI generation and on-chain storage services
               </p>
               <Button variant="premium" onClick={openPaymentModal}>
                 <Zap className="h-4 w-4 mr-2" />
@@ -617,23 +618,7 @@ const generateMeme = async (customCaption?: string) => {
                 {/* AI Options Generator */}
                 {prompt && paymentState.completed && (
                   <div className="flex space-x-2">
-                    <Button
-                      onClick={generateAiOptions}
-                      disabled={isGeneratingOptions}
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                    >
-                      <Brain className="h-4 w-4 mr-2" />
-                      {isGeneratingOptions ? (
-                        <>
-                          <Loader2 className="h-3 w-3 animate-spin mr-2" />
-                          Generating...
-                        </>
-                      ) : (
-                        'Get AI Options'
-                      )}
-                    </Button>
+                    
                   </div>
                 )}
               </div>
@@ -928,7 +913,7 @@ const generateMeme = async (customCaption?: string) => {
               <CardContent className="space-y-4">
                 <div className="p-4 bg-black/20 rounded-lg border border-white/10">
                   <div className="text-center mb-4">
-                    <div className="text-2xl font-bold text-green-400">{totalCost} OG</div>
+                    <div className="text-2xl font-bold text-green-400">{Number(totalCost) - Number(SERVICE_FEES.MINT)} OG</div>
                     <div className="text-sm text-gray-400">Total Amount</div>
                   </div>
 
@@ -941,10 +926,10 @@ const generateMeme = async (customCaption?: string) => {
                       <span>OG Storage:</span>
                       <span className="text-cyan-400">{SERVICE_FEES.STORAGE} OG</span>
                     </div>
-                    <div className="flex justify-between">
+                    {/* <div className="flex justify-between">
                       <span>Smart Contract:</span>
                       <span className="text-cyan-400">{SERVICE_FEES.MINT} OG</span>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
@@ -974,7 +959,7 @@ const generateMeme = async (customCaption?: string) => {
                   ) : (
                     <>
                       <CreditCard className="h-5 w-5 mr-2" />
-                      Pay {totalCost} OG
+                      Pay {Number(totalCost) - Number(SERVICE_FEES.MINT)} OG
                     </>
                   )}
                 </Button>
