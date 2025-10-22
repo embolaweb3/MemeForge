@@ -138,10 +138,10 @@ async function uploadToOGStorage(buffer: Buffer, fileName: string) {
     console.log(`Uploading to OG Storage: ${fileName}, size: ${buffer.length} bytes`);
 
     // Create temporary file for upload
-    const tempDir = path.join(process.cwd(), 'temp');
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
+    const tempDir = '/tmp'
+    // if (!fs.existsSync(tempDir)) {
+    //   fs.mkdirSync(tempDir, { recursive: true });
+    // }
 
     const tempFilePath = path.join(tempDir, `${Date.now()}-${fileName}`);
     fs.writeFileSync(tempFilePath, buffer);
