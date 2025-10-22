@@ -62,7 +62,6 @@ export default function FeedPage() {
   const chains = useChains()
   const { likeMeme, tipCreator } = useMemeActions()
 
-  // ✅ Wagmi v2/v3 replacement for useWaitForTransaction
   const {
     isLoading: isLikeTxLoading,
     isSuccess: isLikeTxSuccess,
