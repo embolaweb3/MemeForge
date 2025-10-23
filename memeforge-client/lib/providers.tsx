@@ -8,7 +8,7 @@ import {
 } from '@rainbow-me/rainbowkit'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createConfig, http, WagmiProvider } from 'wagmi'
-import { mainnet, polygon, optimism, arbitrum, base } from 'wagmi/chains'
+import { mainnet, polygon, optimism, arbitrum, base,zeroGGalileoTestnet } from 'wagmi/chains'
 import { injected, walletConnect } from 'wagmi/connectors'
 
 const queryClient = new QueryClient();

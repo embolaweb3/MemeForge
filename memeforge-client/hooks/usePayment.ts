@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAccount, useChainId, useWalletClient, usePublicClient } from "wagmi";
 import { ethers } from "ethers";
 import PaymentHandlerABI from "@/lib/abis/PaymentHandler.json";
+import { PAYMENT_ABI } from "@/lib/abis/PaymentHandler";
 
 const PAYMENT_HANDLER_ADDRESS = process.env.NEXT_PUBLIC_PAYMENT_HANDLER_ADDRESS as `0x${string}`;
 
@@ -32,6 +33,7 @@ export function usePayment() {
         PaymentHandlerABI.abi,
         signer || provider
       );
+
       setPaymentHandler(contract);
     };
     setup();
@@ -46,7 +48,7 @@ export function usePayment() {
       throw new Error("Please switch to 0G Chain to use MemeForge");
     if (!paymentHandler) throw new Error("Payment contract not available");
 
-    // ✅ Ensure signer is ready
+    // Ensure signer is ready
     const provider = paymentHandler.runner?.provider || new ethers.BrowserProvider(window.ethereum);
     const network = await provider.getNetwork().catch(() => null);
     if (!network) throw new Error("Provider not ready. Please reconnect your wallet.");
@@ -59,10 +61,11 @@ export function usePayment() {
     });
 
     try {
-     
-      console.log('checker',serviceType)
-      const requiredFee = await paymentHandler.getServiceFee(serviceType);
 
+      console.log('checker', serviceType)
+      console.log(paymentHandler, 'PH')
+      const cleanType = serviceType.trim().toLowerCase();
+      const requiredFee = await paymentHandler.getServiceFee(cleanType);
       console.log(`Paying ${ethers.formatEther(requiredFee)} OG for ${serviceType}`);
 
       const tx = await paymentHandler.payForService(serviceType, { value: requiredFee });
@@ -76,7 +79,7 @@ export function usePayment() {
         await new Promise(res => setTimeout(res, 3000));
       }
 
-      // ✅ Treat missing receipt as success if hash exists
+      // Treat missing receipt as success if hash exists
       if (!receipt) {
         console.warn("RPC slow — assuming transaction success since wallet confirmed.");
         setPaymentState({
@@ -109,7 +112,7 @@ export function usePayment() {
       throw new Error("Transaction failed on-chain");
 
     } catch (error: any) {
-      // 🧩 Ignore RPC “receipt not found” noise if transaction hash exists
+      // Ignore RPC “receipt not found” noise if transaction hash exists
       if (paymentState.txHash && error.message?.includes("no matching receipts found")) {
         console.warn("Ignoring RPC error — transaction was successful.");
         return {
@@ -137,7 +140,7 @@ export function usePayment() {
   };
 
 
-  // ✅ Generate unique payment ID
+  // Generate unique payment ID
   const generatePaymentId = async (txHash: string, serviceType: string): Promise<string> => {
     const encoder = new ethers.AbiCoder();
     const encoded = encoder.encode(
