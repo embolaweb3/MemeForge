@@ -1,0 +1,742 @@
+{
+  "address": "0xfb2fCD29Cb9bDeB69D3E1c5Ab75aa9fa2c1E0dDD",
+  "abi": [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableInvalidOwner",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ReentrancyGuardReentrantCall",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "aiGenerationFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "storageFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "aiAndStorageFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "mintFee",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "remixFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "FeesUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "previousOwner",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "serviceType",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "paymentId",
+          "type": "bytes32"
+        }
+      ],
+      "name": "PaymentReceived",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "paymentId",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "RefundIssued",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "paymentId",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "serviceType",
+          "type": "string"
+        }
+      ],
+      "name": "ServiceCompleted",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "aiAndStorageFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "aiGenerationFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_paymentId",
+          "type": "bytes32"
+        }
+      ],
+      "name": "completeService",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getAllFees",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "aiFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "storageFeeValue",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "aiAndStorageFeeValue",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "mintFeeValue",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "remixFeeValue",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getContractBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_serviceType",
+          "type": "string"
+        }
+      ],
+      "name": "getServiceFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "mintFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_serviceType",
+          "type": "string"
+        }
+      ],
+      "name": "payForService",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "payments",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "serviceType",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "completed",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_paymentId",
+          "type": "bytes32"
+        }
+      ],
+      "name": "refundPayment",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "remixFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "renounceOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "storageFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "transferOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_aiFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_storageFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_aiAndStorageFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_mintFee",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_remixFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "updateFees",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "userBalances",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "withdrawFees",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x62552123b42b0210407f27495ccf28a20f9004e41e8ed5dce396340f290857d4",
+  "receipt": {
+    "to": null,
+    "from": "0x68f19746137a4BFbC7Abc76238c55974383F86bb",
+    "contractAddress": "0xfb2fCD29Cb9bDeB69D3E1c5Ab75aa9fa2c1E0dDD",
+    "transactionIndex": 0,
+    "gasUsed": "1224391",
+    "logsBloom": "0x00000400000002000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000020000000000000000000800000000000000000000040000000000400000000000000000000000000000000000000000000000000000000020000000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000004000000000000000000000000",
+    "blockHash": "0x51b57294ac0f8a75e1562c965e22e9db242db85da8c2f2bab6b5849644c86dd9",
+    "transactionHash": "0x62552123b42b0210407f27495ccf28a20f9004e41e8ed5dce396340f290857d4",
+    "logs": [
+      {
+        "transactionIndex": 0,
+        "blockNumber": 11542877,
+        "transactionHash": "0x62552123b42b0210407f27495ccf28a20f9004e41e8ed5dce396340f290857d4",
+        "address": "0xfb2fCD29Cb9bDeB69D3E1c5Ab75aa9fa2c1E0dDD",
+        "topics": [
+          "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0",
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "0x00000000000000000000000068f19746137a4bfbc7abc76238c55974383f86bb"
+        ],
+        "data": "0x",
+        "logIndex": 0,
+        "blockHash": "0x51b57294ac0f8a75e1562c965e22e9db242db85da8c2f2bab6b5849644c86dd9"
+      }
+    ],
+    "blockNumber": 11542877,
+    "cumulativeGasUsed": "1224391",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "2681c835f25889cf2d7ec670671787c8",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.24+commit.e11b9ed9\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"OwnableInvalidOwner\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"OwnableUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ReentrancyGuardReentrantCall\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"aiGenerationFee\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"storageFee\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"aiAndStorageFee\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"mintFee\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remixFee\",\"type\":\"uint256\"}],\"name\":\"FeesUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"serviceType\",\"type\":\"string\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"paymentId\",\"type\":\"bytes32\"}],\"name\":\"PaymentReceived\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"paymentId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"RefundIssued\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"paymentId\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"serviceType\",\"type\":\"string\"}],\"name\":\"ServiceCompleted\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"aiAndStorageFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"aiGenerationFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_paymentId\",\"type\":\"bytes32\"}],\"name\":\"completeService\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getAllFees\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"aiFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"storageFeeValue\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"aiAndStorageFeeValue\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"mintFeeValue\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"remixFeeValue\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getContractBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_serviceType\",\"type\":\"string\"}],\"name\":\"getServiceFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"mintFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"_serviceType\",\"type\":\"string\"}],\"name\":\"payForService\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"payments\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"user\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"string\",\"name\":\"serviceType\",\"type\":\"string\"},{\"internalType\":\"uint256\",\"name\":\"timestamp\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"completed\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_paymentId\",\"type\":\"bytes32\"}],\"name\":\"refundPayment\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"remixFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"storageFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_aiFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_storageFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_aiAndStorageFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_mintFee\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"_remixFee\",\"type\":\"uint256\"}],\"name\":\"updateFees\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"userBalances\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"withdrawFees\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"errors\":{\"OwnableInvalidOwner(address)\":[{\"details\":\"The owner is not a valid owner account. (eg. `address(0)`)\"}],\"OwnableUnauthorizedAccount(address)\":[{\"details\":\"The caller account is not authorized to perform an operation.\"}],\"ReentrancyGuardReentrantCall()\":[{\"details\":\"Unauthorized reentrant call.\"}]},\"kind\":\"dev\",\"methods\":{\"completeService(bytes32)\":{\"details\":\"Complete a service\"},\"getAllFees()\":{\"details\":\"Get all current fees\"},\"getContractBalance()\":{\"details\":\"Get contract balance\"},\"getServiceFee(string)\":{\"details\":\"Get fee for a service\"},\"owner()\":{\"details\":\"Returns the address of the current owner.\"},\"payForService(string)\":{\"details\":\"Pay for a service\"},\"refundPayment(bytes32)\":{\"details\":\"Refund a payment\"},\"renounceOwnership()\":{\"details\":\"Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner.\"},\"transferOwnership(address)\":{\"details\":\"Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.\"},\"updateFees(uint256,uint256,uint256,uint256,uint256)\":{\"details\":\"Update service fees (owner only)\"},\"withdrawFees()\":{\"details\":\"Withdraw collected fees\"}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/PaymentHandler.sol\":\"PaymentHandler\"},\"evmVersion\":\"cancun\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"none\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/access/Ownable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (access/Ownable.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {Context} from \\\"../utils/Context.sol\\\";\\n\\n/**\\n * @dev Contract module which provides a basic access control mechanism, where\\n * there is an account (an owner) that can be granted exclusive access to\\n * specific functions.\\n *\\n * The initial owner is set to the address provided by the deployer. This can\\n * later be changed with {transferOwnership}.\\n *\\n * This module is used through inheritance. It will make available the modifier\\n * `onlyOwner`, which can be applied to your functions to restrict their use to\\n * the owner.\\n */\\nabstract contract Ownable is Context {\\n    address private _owner;\\n\\n    /**\\n     * @dev The caller account is not authorized to perform an operation.\\n     */\\n    error OwnableUnauthorizedAccount(address account);\\n\\n    /**\\n     * @dev The owner is not a valid owner account. (eg. `address(0)`)\\n     */\\n    error OwnableInvalidOwner(address owner);\\n\\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\\n\\n    /**\\n     * @dev Initializes the contract setting the address provided by the deployer as the initial owner.\\n     */\\n    constructor(address initialOwner) {\\n        if (initialOwner == address(0)) {\\n            revert OwnableInvalidOwner(address(0));\\n        }\\n        _transferOwnership(initialOwner);\\n    }\\n\\n    /**\\n     * @dev Throws if called by any account other than the owner.\\n     */\\n    modifier onlyOwner() {\\n        _checkOwner();\\n        _;\\n    }\\n\\n    /**\\n     * @dev Returns the address of the current owner.\\n     */\\n    function owner() public view virtual returns (address) {\\n        return _owner;\\n    }\\n\\n    /**\\n     * @dev Throws if the sender is not the owner.\\n     */\\n    function _checkOwner() internal view virtual {\\n        if (owner() != _msgSender()) {\\n            revert OwnableUnauthorizedAccount(_msgSender());\\n        }\\n    }\\n\\n    /**\\n     * @dev Leaves the contract without owner. It will not be possible to call\\n     * `onlyOwner` functions. Can only be called by the current owner.\\n     *\\n     * NOTE: Renouncing ownership will leave the contract without an owner,\\n     * thereby disabling any functionality that is only available to the owner.\\n     */\\n    function renounceOwnership() public virtual onlyOwner {\\n        _transferOwnership(address(0));\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Can only be called by the current owner.\\n     */\\n    function transferOwnership(address newOwner) public virtual onlyOwner {\\n        if (newOwner == address(0)) {\\n            revert OwnableInvalidOwner(address(0));\\n        }\\n        _transferOwnership(newOwner);\\n    }\\n\\n    /**\\n     * @dev Transfers ownership of the contract to a new account (`newOwner`).\\n     * Internal function without access restriction.\\n     */\\n    function _transferOwnership(address newOwner) internal virtual {\\n        address oldOwner = _owner;\\n        _owner = newOwner;\\n        emit OwnershipTransferred(oldOwner, newOwner);\\n    }\\n}\\n\",\"keccak256\":\"0xff6d0bb2e285473e5311d9d3caacb525ae3538a80758c10649a4d61029b017bb\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/Context.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.1) (utils/Context.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract Context {\\n    function _msgSender() internal view virtual returns (address) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes calldata) {\\n        return msg.data;\\n    }\\n\\n    function _contextSuffixLength() internal view virtual returns (uint256) {\\n        return 0;\\n    }\\n}\\n\",\"keccak256\":\"0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/ReentrancyGuard.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.1.0) (utils/ReentrancyGuard.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Contract module that helps prevent reentrant calls to a function.\\n *\\n * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier\\n * available, which can be applied to functions to make sure there are no nested\\n * (reentrant) calls to them.\\n *\\n * Note that because there is a single `nonReentrant` guard, functions marked as\\n * `nonReentrant` may not call one another. This can be worked around by making\\n * those functions `private`, and then adding `external` `nonReentrant` entry\\n * points to them.\\n *\\n * TIP: If EIP-1153 (transient storage) is available on the chain you're deploying at,\\n * consider using {ReentrancyGuardTransient} instead.\\n *\\n * TIP: If you would like to learn more about reentrancy and alternative ways\\n * to protect against it, check out our blog post\\n * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].\\n */\\nabstract contract ReentrancyGuard {\\n    // Booleans are more expensive than uint256 or any type that takes up a full\\n    // word because each write operation emits an extra SLOAD to first read the\\n    // slot's contents, replace the bits taken up by the boolean, and then write\\n    // back. This is the compiler's defense against contract upgrades and\\n    // pointer aliasing, and it cannot be disabled.\\n\\n    // The values being non-zero value makes deployment a bit more expensive,\\n    // but in exchange the refund on every call to nonReentrant will be lower in\\n    // amount. Since refunds are capped to a percentage of the total\\n    // transaction's gas, it is best to keep them low in cases like this one, to\\n    // increase the likelihood of the full refund coming into effect.\\n    uint256 private constant NOT_ENTERED = 1;\\n    uint256 private constant ENTERED = 2;\\n\\n    uint256 private _status;\\n\\n    /**\\n     * @dev Unauthorized reentrant call.\\n     */\\n    error ReentrancyGuardReentrantCall();\\n\\n    constructor() {\\n        _status = NOT_ENTERED;\\n    }\\n\\n    /**\\n     * @dev Prevents a contract from calling itself, directly or indirectly.\\n     * Calling a `nonReentrant` function from another `nonReentrant`\\n     * function is not supported. It is possible to prevent this from happening\\n     * by making the `nonReentrant` function external, and making it call a\\n     * `private` function that does the actual work.\\n     */\\n    modifier nonReentrant() {\\n        _nonReentrantBefore();\\n        _;\\n        _nonReentrantAfter();\\n    }\\n\\n    function _nonReentrantBefore() private {\\n        // On the first call to nonReentrant, _status will be NOT_ENTERED\\n        if (_status == ENTERED) {\\n            revert ReentrancyGuardReentrantCall();\\n        }\\n\\n        // Any calls to nonReentrant after this point will fail\\n        _status = ENTERED;\\n    }\\n\\n    function _nonReentrantAfter() private {\\n        // By storing the original value once again, a refund is triggered (see\\n        // https://eips.ethereum.org/EIPS/eip-2200)\\n        _status = NOT_ENTERED;\\n    }\\n\\n    /**\\n     * @dev Returns true if the reentrancy guard is currently set to \\\"entered\\\", which indicates there is a\\n     * `nonReentrant` function in the call stack.\\n     */\\n    function _reentrancyGuardEntered() internal view returns (bool) {\\n        return _status == ENTERED;\\n    }\\n}\\n\",\"keccak256\":\"0x11a5a79827df29e915a12740caf62fe21ebe27c08c9ae3e09abe9ee3ba3866d3\",\"license\":\"MIT\"},\"contracts/PaymentHandler.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.24;\\n\\nimport \\\"@openzeppelin/contracts/access/Ownable.sol\\\";\\nimport \\\"@openzeppelin/contracts/utils/ReentrancyGuard.sol\\\";\\n\\ncontract PaymentHandler is Ownable, ReentrancyGuard {\\n    struct ServicePayment {\\n        address user;\\n        uint256 amount;\\n        string serviceType; // \\\"ai_generation\\\", \\\"storage\\\", \\\"ai_and_storage\\\", \\\"mint\\\", \\\"remix\\\"\\n        uint256 timestamp;\\n        bool completed;\\n    }\\n\\n    // Updated Service fees (in wei)\\n    uint256 public aiGenerationFee = 0.005 ether; // 0.005 0G\\n    uint256 public storageFee = 0.001 ether; // 0.001 0G\\n    uint256 public aiAndStorageFee = 0.006 ether; // 0.006 0G (AI + Storage combined)\\n    uint256 public mintFee = 0.001 ether; // 0.001 0G\\n    uint256 public remixFee = 0.0005 ether; // 0.0005 0G\\n\\n    mapping(address => uint256) public userBalances;\\n    mapping(bytes32 => ServicePayment) public payments;\\n\\n    event PaymentReceived(\\n        address indexed user,\\n        uint256 amount,\\n        string serviceType,\\n        bytes32 paymentId\\n    );\\n\\n    event ServiceCompleted(\\n        bytes32 indexed paymentId,\\n        address indexed user,\\n        string serviceType\\n    );\\n\\n    event RefundIssued(\\n        bytes32 indexed paymentId,\\n        address indexed user,\\n        uint256 amount\\n    );\\n\\n    event FeesUpdated(\\n        uint256 aiGenerationFee,\\n        uint256 storageFee,\\n        uint256 aiAndStorageFee,\\n        uint256 mintFee,\\n        uint256 remixFee\\n    );\\n\\n    constructor() Ownable(msg.sender) {}\\n\\n    /**\\n     * @dev Pay for a service\\n     */\\n    function payForService(\\n        string memory _serviceType\\n    ) external payable nonReentrant returns (bytes32) {\\n        uint256 requiredFee = getServiceFee(_serviceType);\\n        require(msg.value >= requiredFee, \\\"Insufficient payment\\\");\\n\\n        bytes32 paymentId = keccak256(\\n            abi.encodePacked(\\n                msg.sender,\\n                _serviceType,\\n                block.timestamp,\\n                block.prevrandao\\n            )\\n        );\\n\\n        payments[paymentId] = ServicePayment({\\n            user: msg.sender,\\n            amount: msg.value,\\n            serviceType: _serviceType,\\n            timestamp: block.timestamp,\\n            completed: false\\n        });\\n\\n        // Refund excess\\n        if (msg.value > requiredFee) {\\n            uint256 refundAmount = msg.value - requiredFee;\\n            (bool success, ) = payable(msg.sender).call{value: refundAmount}(\\\"\\\");\\n            require(success, \\\"Transfer failed\\\");\\n        }\\n\\n        emit PaymentReceived(msg.sender, requiredFee, _serviceType, paymentId);\\n        return paymentId;\\n    }\\n\\n    /**\\n     * @dev Complete a service\\n     */\\n    function completeService(bytes32 _paymentId) external onlyOwner {\\n        require(payments[_paymentId].user != address(0), \\\"Payment not found\\\");\\n        require(!payments[_paymentId].completed, \\\"Service already completed\\\");\\n\\n        payments[_paymentId].completed = true;\\n\\n        emit ServiceCompleted(\\n            _paymentId,\\n            payments[_paymentId].user,\\n            payments[_paymentId].serviceType\\n        );\\n    }\\n\\n    /**\\n     * @dev Refund a payment\\n     */\\n    function refundPayment(bytes32 _paymentId) external onlyOwner nonReentrant {\\n        ServicePayment memory payment = payments[_paymentId];\\n        require(payment.user != address(0), \\\"Payment not found\\\");\\n        require(!payment.completed, \\\"Service already completed\\\");\\n\\n        (bool success, ) = payable(payment.user).call{value: payment.amount}(\\\"\\\");\\n        require(success, \\\"Transfer failed\\\");\\n        payments[_paymentId].completed = true;\\n\\n        emit RefundIssued(_paymentId, payment.user, payment.amount);\\n    }\\n\\n    /**\\n     * @dev Get fee for a service\\n     */\\n    function getServiceFee(\\n        string memory _serviceType\\n    ) public view returns (uint256) {\\n        if (\\n            keccak256(abi.encodePacked(_serviceType)) ==\\n            keccak256(abi.encodePacked(\\\"ai_generation\\\"))\\n        ) {\\n            return aiGenerationFee;\\n        } else if (\\n            keccak256(abi.encodePacked(_serviceType)) ==\\n            keccak256(abi.encodePacked(\\\"storage\\\"))\\n        ) {\\n            return storageFee;\\n        } else if (\\n            keccak256(abi.encodePacked(_serviceType)) ==\\n            keccak256(abi.encodePacked(\\\"ai_and_storage\\\"))\\n        ) {\\n            return aiAndStorageFee;\\n        } else if (\\n            keccak256(abi.encodePacked(_serviceType)) ==\\n            keccak256(abi.encodePacked(\\\"mint\\\"))\\n        ) {\\n            return mintFee;\\n        } else if (\\n            keccak256(abi.encodePacked(_serviceType)) ==\\n            keccak256(abi.encodePacked(\\\"remix\\\"))\\n        ) {\\n            return remixFee;\\n        }\\n        revert(\\\"Unknown service type\\\");\\n    }\\n\\n    /**\\n     * @dev Update service fees (owner only)\\n     */\\n    function updateFees(\\n        uint256 _aiFee,\\n        uint256 _storageFee,\\n        uint256 _aiAndStorageFee,\\n        uint256 _mintFee,\\n        uint256 _remixFee\\n    ) external onlyOwner {\\n        aiGenerationFee = _aiFee;\\n        storageFee = _storageFee;\\n        aiAndStorageFee = _aiAndStorageFee;\\n        mintFee = _mintFee;\\n        remixFee = _remixFee;\\n\\n        emit FeesUpdated(_aiFee, _storageFee, _aiAndStorageFee, _mintFee, _remixFee);\\n    }\\n\\n    /**\\n     * @dev Get all current fees\\n     */\\n    function getAllFees() external view returns (\\n        uint256 aiFee,\\n        uint256 storageFeeValue,\\n        uint256 aiAndStorageFeeValue,\\n        uint256 mintFeeValue,\\n        uint256 remixFeeValue\\n    ) {\\n        return (\\n            aiGenerationFee,\\n            storageFee,\\n            aiAndStorageFee,\\n            mintFee,\\n            remixFee\\n        );\\n    }\\n\\n    /**\\n     * @dev Withdraw collected fees\\n     */\\n    function withdrawFees() external onlyOwner {\\n        uint256 balance = address(this).balance;\\n        require(balance > 0, \\\"No funds to withdraw\\\");\\n\\n        (bool success, ) = payable(owner()).call{value: balance}(\\\"\\\");\\n        require(success, \\\"Transfer failed\\\");\\n    }\\n\\n    /**\\n     * @dev Get contract balance\\n     */\\n    function getContractBalance() external view returns (uint256) {\\n        return address(this).balance;\\n    }\\n}\",\"keccak256\":\"0xc882260e6b1d7adcaf71a5919b3e143bdbe8e84fcad455571bbc212c838453ca\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60806040526611c37937e0800060025566038d7ea4c68000600355661550f7dca7000060045566038d7ea4c680006005556601c6bf52634000600655348015610046575f80fd5b50338061006c57604051631e4fbdf760e01b81525f600482015260240160405180910390fd5b6100758161007f565b50600180556100ce565b5f80546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b611246806100db5f395ff3fe608060405260043610610105575f3560e01c8063715018a611610092578063b20feaaf11610062578063b20feaaf1461028c578063b4f5fa87146102cf578063de8f8b3f146102e4578063e747657014610303578063f2fde38b14610318575f80fd5b8063715018a61461022a578063773f0b181461023e5780638da5cb5b14610253578063a9ce953a14610279575f80fd5b806326224c64116100d857806326224c64146101995780633d558a21146101c4578063457ffca2146101e5578063476343ee146102045780636f9fb98a14610218575f80fd5b80630716326d1461010957806313966db514610142578063164e37551461016557806318274da41461017a575b5f80fd5b348015610114575f80fd5b50610128610123366004610dd1565b610337565b604051610139959493929190610e35565b60405180910390f35b34801561014d575f80fd5b5061015760055481565b604051908152602001610139565b348015610170575f80fd5b5061015760025481565b348015610185575f80fd5b50610157610194366004610e88565b6103f9565b3480156101a4575f80fd5b506101576101b3366004610f33565b60076020525f908152604090205481565b3480156101cf575f80fd5b506101e36101de366004610dd1565b610627565b005b3480156101f0575f80fd5b506101e36101ff366004610f60565b61074d565b34801561020f575f80fd5b506101e36107c4565b348015610223575f80fd5b5047610157565b348015610235575f80fd5b506101e3610885565b348015610249575f80fd5b5061015760035481565b34801561025e575f80fd5b505f546040516001600160a01b039091168152602001610139565b610157610287366004610e88565b610898565b348015610297575f80fd5b50600254600354600454600554600654604080519586526020860194909452928401919091526060830152608082015260a001610139565b3480156102da575f80fd5b5061015760045481565b3480156102ef575f80fd5b506101e36102fe366004610dd1565b610a85565b34801561030e575f80fd5b5061015760065481565b348015610323575f80fd5b506101e3610332366004610f33565b610cf2565b60086020525f90815260409020805460018201546002830180546001600160a01b0390931693919261036890610f97565b80601f016020809104026020016040519081016040528092919081815260200182805461039490610f97565b80156103df5780601f106103b6576101008083540402835291602001916103df565b820191905f5260205f20905b8154815290600101906020018083116103c257829003601f168201915b50505050600383015460049093015491929160ff16905085565b6040516c30b4afb3b2b732b930ba34b7b760991b60208201525f90602d01604051602081830303815290604052805190602001208260405160200161043e9190610fcf565b604051602081830303815290604052805190602001200361046157505060025490565b6040516673746f7261676560c81b6020820152602701604051602081830303815290604052805190602001208260405160200161049e9190610fcf565b60405160208183030381529060405280519060200120036104c157505060035490565b6040516d61695f616e645f73746f7261676560901b6020820152602e0160405160208183030381529060405280519060200120826040516020016105059190610fcf565b604051602081830303815290604052805190602001200361052857505060045490565b604051631b5a5b9d60e21b602082015260240160405160208183030381529060405280519060200120826040516020016105629190610fcf565b604051602081830303815290604052805190602001200361058557505060055490565b604051640e4cadad2f60db1b602082015260250160405160208183030381529060405280519060200120826040516020016105c09190610fcf565b60405160208183030381529060405280519060200120036105e357505060065490565b60405162461bcd60e51b8152602060048201526014602482015273556e6b6e6f776e2073657276696365207479706560601b60448201526064015b60405180910390fd5b61062f610d2c565b5f818152600860205260409020546001600160a01b03166106865760405162461bcd60e51b815260206004820152601160248201527014185e5b595b9d081b9bdd08199bdd5b99607a1b604482015260640161061e565b5f8181526008602052604090206004015460ff16156106e35760405162461bcd60e51b815260206004820152601960248201527814d95c9d9a58d948185b1c9958591e4818dbdb5c1b195d1959603a1b604482015260640161061e565b5f818152600860205260409081902060048101805460ff19166001179055805491516001600160a01b039092169183917f7b35762f349c90fbc5487e255491e38e9ff70ef1b20941a93601fc3ab26a99da916107429160020190610fea565b60405180910390a350565b610755610d2c565b60028590556003849055600483905560058290556006819055604080518681526020810186905290810184905260608101839052608081018290527f96b67df2c4648b38ada47da86f80d0a256df93150752a7b365ca487cab934e649060a00160405180910390a15050505050565b6107cc610d2c565b47806108115760405162461bcd60e51b81526020600482015260146024820152734e6f2066756e647320746f20776974686472617760601b604482015260640161061e565b5f80546040516001600160a01b039091169083908381818185875af1925050503d805f811461085b576040519150601f19603f3d011682016040523d82523d5f602084013e610860565b606091505b50509050806108815760405162461bcd60e51b815260040161061e90611074565b5050565b61088d610d2c565b6108965f610d58565b565b5f6108a1610da7565b5f6108ab836103f9565b9050803410156108f45760405162461bcd60e51b8152602060048201526014602482015273125b9cdd59999a58da595b9d081c185e5b595b9d60621b604482015260640161061e565b5f3384424460405160200161090c949392919061109d565b60408051808303601f19018152828252805160209182012060a084018352338452348285019081528484018981524260608701525f60808701819052838152600890945293909220845181546001600160a01b0319166001600160a01b0390911617815591516001830155915191935090600282019061098c908261112c565b50606082015160038201556080909101516004909101805460ff191691151591909117905534821015610a2f575f6109c483346111ec565b6040519091505f90339083908381818185875af1925050503d805f8114610a06576040519150601f19603f3d011682016040523d82523d5f602084013e610a0b565b606091505b5050905080610a2c5760405162461bcd60e51b815260040161061e90611074565b50505b336001600160a01b03167f08ff71dfa71080c2a3b2472069ed760b8d6dab569264c3601cb6b6ad70d13735838684604051610a6c93929190611211565b60405180910390a2915050610a8060018055565b919050565b610a8d610d2c565b610a95610da7565b5f818152600860209081526040808320815160a08101835281546001600160a01b031681526001820154938101939093526002810180549192840191610ada90610f97565b80601f0160208091040260200160405190810160405280929190818152602001828054610b0690610f97565b8015610b515780601f10610b2857610100808354040283529160200191610b51565b820191905f5260205f20905b815481529060010190602001808311610b3457829003601f168201915b50505091835250506003820154602082015260049091015460ff16151560409091015280519091506001600160a01b0316610bc25760405162461bcd60e51b815260206004820152601160248201527014185e5b595b9d081b9bdd08199bdd5b99607a1b604482015260640161061e565b806080015115610c105760405162461bcd60e51b815260206004820152601960248201527814d95c9d9a58d948185b1c9958591e4818dbdb5c1b195d1959603a1b604482015260640161061e565b805160208201516040515f926001600160a01b031691908381818185875af1925050503d805f8114610c5d576040519150601f19603f3d011682016040523d82523d5f602084013e610c62565b606091505b5050905080610c835760405162461bcd60e51b815260040161061e90611074565b5f83815260086020908152604091829020600401805460ff1916600117905583518482015192519283526001600160a01b03169185917ff8590cd6b8c44be7a2bc57131f10e203ec5f7d7f2f761e1508a8cc964ecb9eb7910160405180910390a35050610cef60018055565b50565b610cfa610d2c565b6001600160a01b038116610d2357604051631e4fbdf760e01b81525f600482015260240161061e565b610cef81610d58565b5f546001600160a01b031633146108965760405163118cdaa760e01b815233600482015260240161061e565b5f80546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b600260015403610dca57604051633ee5aeb560e01b815260040160405180910390fd5b6002600155565b5f60208284031215610de1575f80fd5b5035919050565b5f5b83811015610e02578181015183820152602001610dea565b50505f910152565b5f8151808452610e21816020860160208601610de8565b601f01601f19169290920160200192915050565b60018060a01b038616815284602082015260a060408201525f610e5b60a0830186610e0a565b6060830194909452509015156080909101529392505050565b634e487b7160e01b5f52604160045260245ffd5b5f60208284031215610e98575f80fd5b813567ffffffffffffffff80821115610eaf575f80fd5b818401915084601f830112610ec2575f80fd5b813581811115610ed457610ed4610e74565b604051601f8201601f19908116603f01168101908382118183101715610efc57610efc610e74565b81604052828152876020848701011115610f14575f80fd5b826020860160208301375f928101602001929092525095945050505050565b5f60208284031215610f43575f80fd5b81356001600160a01b0381168114610f59575f80fd5b9392505050565b5f805f805f60a08688031215610f74575f80fd5b505083359560208501359550604085013594606081013594506080013592509050565b600181811c90821680610fab57607f821691505b602082108103610fc957634e487b7160e01b5f52602260045260245ffd5b50919050565b5f8251610fe0818460208701610de8565b9190910192915050565b5f60208083525f8454610ffc81610f97565b806020870152604060018084165f811461101d576001811461103957611066565b60ff19851660408a0152604084151560051b8a01019550611066565b895f5260205f205f5b8581101561105d5781548b8201860152908301908801611042565b8a016040019650505b509398975050505050505050565b6020808252600f908201526e151c985b9cd9995c8819985a5b1959608a1b604082015260600190565b6bffffffffffffffffffffffff198560601b1681525f84516110c6816014850160208901610de8565b909101601481019390935250603482015260540192915050565b601f82111561112757805f5260205f20601f840160051c810160208510156111055750805b601f840160051c820191505b81811015611124575f8155600101611111565b50505b505050565b815167ffffffffffffffff81111561114657611146610e74565b61115a816111548454610f97565b846110e0565b602080601f83116001811461118d575f84156111765750858301515b5f19600386901b1c1916600185901b1785556111e4565b5f85815260208120601f198616915b828110156111bb5788860151825594840194600190910190840161119c565b50858210156111d857878501515f19600388901b60f8161c191681555b505060018460011b0185555b505050505050565b8181038181111561120b57634e487b7160e01b5f52601160045260245ffd5b92915050565b838152606060208201525f6112296060830185610e0a565b905082604083015294935050505056fea164736f6c6343000818000a",
+  "deployedBytecode": "0x608060405260043610610105575f3560e01c8063715018a611610092578063b20feaaf11610062578063b20feaaf1461028c578063b4f5fa87146102cf578063de8f8b3f146102e4578063e747657014610303578063f2fde38b14610318575f80fd5b8063715018a61461022a578063773f0b181461023e5780638da5cb5b14610253578063a9ce953a14610279575f80fd5b806326224c64116100d857806326224c64146101995780633d558a21146101c4578063457ffca2146101e5578063476343ee146102045780636f9fb98a14610218575f80fd5b80630716326d1461010957806313966db514610142578063164e37551461016557806318274da41461017a575b5f80fd5b348015610114575f80fd5b50610128610123366004610dd1565b610337565b604051610139959493929190610e35565b60405180910390f35b34801561014d575f80fd5b5061015760055481565b604051908152602001610139565b348015610170575f80fd5b5061015760025481565b348015610185575f80fd5b50610157610194366004610e88565b6103f9565b3480156101a4575f80fd5b506101576101b3366004610f33565b60076020525f908152604090205481565b3480156101cf575f80fd5b506101e36101de366004610dd1565b610627565b005b3480156101f0575f80fd5b506101e36101ff366004610f60565b61074d565b34801561020f575f80fd5b506101e36107c4565b348015610223575f80fd5b5047610157565b348015610235575f80fd5b506101e3610885565b348015610249575f80fd5b5061015760035481565b34801561025e575f80fd5b505f546040516001600160a01b039091168152602001610139565b610157610287366004610e88565b610898565b348015610297575f80fd5b50600254600354600454600554600654604080519586526020860194909452928401919091526060830152608082015260a001610139565b3480156102da575f80fd5b5061015760045481565b3480156102ef575f80fd5b506101e36102fe366004610dd1565b610a85565b34801561030e575f80fd5b5061015760065481565b348015610323575f80fd5b506101e3610332366004610f33565b610cf2565b60086020525f90815260409020805460018201546002830180546001600160a01b0390931693919261036890610f97565b80601f016020809104026020016040519081016040528092919081815260200182805461039490610f97565b80156103df5780601f106103b6576101008083540402835291602001916103df565b820191905f5260205f20905b8154815290600101906020018083116103c257829003601f168201915b50505050600383015460049093015491929160ff16905085565b6040516c30b4afb3b2b732b930ba34b7b760991b60208201525f90602d01604051602081830303815290604052805190602001208260405160200161043e9190610fcf565b604051602081830303815290604052805190602001200361046157505060025490565b6040516673746f7261676560c81b6020820152602701604051602081830303815290604052805190602001208260405160200161049e9190610fcf565b60405160208183030381529060405280519060200120036104c157505060035490565b6040516d61695f616e645f73746f7261676560901b6020820152602e0160405160208183030381529060405280519060200120826040516020016105059190610fcf565b604051602081830303815290604052805190602001200361052857505060045490565b604051631b5a5b9d60e21b602082015260240160405160208183030381529060405280519060200120826040516020016105629190610fcf565b604051602081830303815290604052805190602001200361058557505060055490565b604051640e4cadad2f60db1b602082015260250160405160208183030381529060405280519060200120826040516020016105c09190610fcf565b60405160208183030381529060405280519060200120036105e357505060065490565b60405162461bcd60e51b8152602060048201526014602482015273556e6b6e6f776e2073657276696365207479706560601b60448201526064015b60405180910390fd5b61062f610d2c565b5f818152600860205260409020546001600160a01b03166106865760405162461bcd60e51b815260206004820152601160248201527014185e5b595b9d081b9bdd08199bdd5b99607a1b604482015260640161061e565b5f8181526008602052604090206004015460ff16156106e35760405162461bcd60e51b815260206004820152601960248201527814d95c9d9a58d948185b1c9958591e4818dbdb5c1b195d1959603a1b604482015260640161061e565b5f818152600860205260409081902060048101805460ff19166001179055805491516001600160a01b039092169183917f7b35762f349c90fbc5487e255491e38e9ff70ef1b20941a93601fc3ab26a99da916107429160020190610fea565b60405180910390a350565b610755610d2c565b60028590556003849055600483905560058290556006819055604080518681526020810186905290810184905260608101839052608081018290527f96b67df2c4648b38ada47da86f80d0a256df93150752a7b365ca487cab934e649060a00160405180910390a15050505050565b6107cc610d2c565b47806108115760405162461bcd60e51b81526020600482015260146024820152734e6f2066756e647320746f20776974686472617760601b604482015260640161061e565b5f80546040516001600160a01b039091169083908381818185875af1925050503d805f811461085b576040519150601f19603f3d011682016040523d82523d5f602084013e610860565b606091505b50509050806108815760405162461bcd60e51b815260040161061e90611074565b5050565b61088d610d2c565b6108965f610d58565b565b5f6108a1610da7565b5f6108ab836103f9565b9050803410156108f45760405162461bcd60e51b8152602060048201526014602482015273125b9cdd59999a58da595b9d081c185e5b595b9d60621b604482015260640161061e565b5f3384424460405160200161090c949392919061109d565b60408051808303601f19018152828252805160209182012060a084018352338452348285019081528484018981524260608701525f60808701819052838152600890945293909220845181546001600160a01b0319166001600160a01b0390911617815591516001830155915191935090600282019061098c908261112c565b50606082015160038201556080909101516004909101805460ff191691151591909117905534821015610a2f575f6109c483346111ec565b6040519091505f90339083908381818185875af1925050503d805f8114610a06576040519150601f19603f3d011682016040523d82523d5f602084013e610a0b565b606091505b5050905080610a2c5760405162461bcd60e51b815260040161061e90611074565b50505b336001600160a01b03167f08ff71dfa71080c2a3b2472069ed760b8d6dab569264c3601cb6b6ad70d13735838684604051610a6c93929190611211565b60405180910390a2915050610a8060018055565b919050565b610a8d610d2c565b610a95610da7565b5f818152600860209081526040808320815160a08101835281546001600160a01b031681526001820154938101939093526002810180549192840191610ada90610f97565b80601f0160208091040260200160405190810160405280929190818152602001828054610b0690610f97565b8015610b515780601f10610b2857610100808354040283529160200191610b51565b820191905f5260205f20905b815481529060010190602001808311610b3457829003601f168201915b50505091835250506003820154602082015260049091015460ff16151560409091015280519091506001600160a01b0316610bc25760405162461bcd60e51b815260206004820152601160248201527014185e5b595b9d081b9bdd08199bdd5b99607a1b604482015260640161061e565b806080015115610c105760405162461bcd60e51b815260206004820152601960248201527814d95c9d9a58d948185b1c9958591e4818dbdb5c1b195d1959603a1b604482015260640161061e565b805160208201516040515f926001600160a01b031691908381818185875af1925050503d805f8114610c5d576040519150601f19603f3d011682016040523d82523d5f602084013e610c62565b606091505b5050905080610c835760405162461bcd60e51b815260040161061e90611074565b5f83815260086020908152604091829020600401805460ff1916600117905583518482015192519283526001600160a01b03169185917ff8590cd6b8c44be7a2bc57131f10e203ec5f7d7f2f761e1508a8cc964ecb9eb7910160405180910390a35050610cef60018055565b50565b610cfa610d2c565b6001600160a01b038116610d2357604051631e4fbdf760e01b81525f600482015260240161061e565b610cef81610d58565b5f546001600160a01b031633146108965760405163118cdaa760e01b815233600482015260240161061e565b5f80546001600160a01b038381166001600160a01b0319831681178455604051919092169283917f8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e09190a35050565b600260015403610dca57604051633ee5aeb560e01b815260040160405180910390fd5b6002600155565b5f60208284031215610de1575f80fd5b5035919050565b5f5b83811015610e02578181015183820152602001610dea565b50505f910152565b5f8151808452610e21816020860160208601610de8565b601f01601f19169290920160200192915050565b60018060a01b038616815284602082015260a060408201525f610e5b60a0830186610e0a565b6060830194909452509015156080909101529392505050565b634e487b7160e01b5f52604160045260245ffd5b5f60208284031215610e98575f80fd5b813567ffffffffffffffff80821115610eaf575f80fd5b818401915084601f830112610ec2575f80fd5b813581811115610ed457610ed4610e74565b604051601f8201601f19908116603f01168101908382118183101715610efc57610efc610e74565b81604052828152876020848701011115610f14575f80fd5b826020860160208301375f928101602001929092525095945050505050565b5f60208284031215610f43575f80fd5b81356001600160a01b0381168114610f59575f80fd5b9392505050565b5f805f805f60a08688031215610f74575f80fd5b505083359560208501359550604085013594606081013594506080013592509050565b600181811c90821680610fab57607f821691505b602082108103610fc957634e487b7160e01b5f52602260045260245ffd5b50919050565b5f8251610fe0818460208701610de8565b9190910192915050565b5f60208083525f8454610ffc81610f97565b806020870152604060018084165f811461101d576001811461103957611066565b60ff19851660408a0152604084151560051b8a01019550611066565b895f5260205f205f5b8581101561105d5781548b8201860152908301908801611042565b8a016040019650505b509398975050505050505050565b6020808252600f908201526e151c985b9cd9995c8819985a5b1959608a1b604082015260600190565b6bffffffffffffffffffffffff198560601b1681525f84516110c6816014850160208901610de8565b909101601481019390935250603482015260540192915050565b601f82111561112757805f5260205f20601f840160051c810160208510156111055750805b601f840160051c820191505b81811015611124575f8155600101611111565b50505b505050565b815167ffffffffffffffff81111561114657611146610e74565b61115a816111548454610f97565b846110e0565b602080601f83116001811461118d575f84156111765750858301515b5f19600386901b1c1916600185901b1785556111e4565b5f85815260208120601f198616915b828110156111bb5788860151825594840194600190910190840161119c565b50858210156111d857878501515f19600388901b60f8161c191681555b505060018460011b0185555b505050505050565b8181038181111561120b57634e487b7160e01b5f52601160045260245ffd5b92915050565b838152606060208201525f6112296060830185610e0a565b905082604083015294935050505056fea164736f6c6343000818000a",
+  "devdoc": {
+    "errors": {
+      "OwnableInvalidOwner(address)": [
+        {
+          "details": "The owner is not a valid owner account. (eg. `address(0)`)"
+        }
+      ],
+      "OwnableUnauthorizedAccount(address)": [
+        {
+          "details": "The caller account is not authorized to perform an operation."
+        }
+      ],
+      "ReentrancyGuardReentrantCall()": [
+        {
+          "details": "Unauthorized reentrant call."
+        }
+      ]
+    },
+    "kind": "dev",
+    "methods": {
+      "completeService(bytes32)": {
+        "details": "Complete a service"
+      },
+      "getAllFees()": {
+        "details": "Get all current fees"
+      },
+      "getContractBalance()": {
+        "details": "Get contract balance"
+      },
+      "getServiceFee(string)": {
+        "details": "Get fee for a service"
+      },
+      "owner()": {
+        "details": "Returns the address of the current owner."
+      },
+      "payForService(string)": {
+        "details": "Pay for a service"
+      },
+      "refundPayment(bytes32)": {
+        "details": "Refund a payment"
+      },
+      "renounceOwnership()": {
+        "details": "Leaves the contract without owner. It will not be possible to call `onlyOwner` functions. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby disabling any functionality that is only available to the owner."
+      },
+      "transferOwnership(address)": {
+        "details": "Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner."
+      },
+      "updateFees(uint256,uint256,uint256,uint256,uint256)": {
+        "details": "Update service fees (owner only)"
+      },
+      "withdrawFees()": {
+        "details": "Withdraw collected fees"
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 8,
+        "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+        "label": "_owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 188,
+        "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+        "label": "_status",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 1003,
+        "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+        "label": "aiGenerationFee",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 1006,
+        "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+        "label": "storageFee",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 1009,
+        "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+        "label": "aiAndStorageFee",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 1012,
+        "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+        "label": "mintFee",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 1015,
+        "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+        "label": "remixFee",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 1019,
+        "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+        "label": "userBalances",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 1024,
+        "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+        "label": "payments",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_mapping(t_bytes32,t_struct(ServicePayment)1000_storage)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_bytes32,t_struct(ServicePayment)1000_storage)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => struct PaymentHandler.ServicePayment)",
+        "numberOfBytes": "32",
+        "value": "t_struct(ServicePayment)1000_storage"
+      },
+      "t_string_storage": {
+        "encoding": "bytes",
+        "label": "string",
+        "numberOfBytes": "32"
+      },
+      "t_struct(ServicePayment)1000_storage": {
+        "encoding": "inplace",
+        "label": "struct PaymentHandler.ServicePayment",
+        "members": [
+          {
+            "astId": 991,
+            "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+            "label": "user",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_address"
+          },
+          {
+            "astId": 993,
+            "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+            "label": "amount",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 995,
+            "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+            "label": "serviceType",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_string_storage"
+          },
+          {
+            "astId": 997,
+            "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+            "label": "timestamp",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 999,
+            "contract": "contracts/PaymentHandler.sol:PaymentHandler",
+            "label": "completed",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_bool"
+          }
+        ],
+        "numberOfBytes": "160"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
