@@ -6,9 +6,9 @@ import path from 'path';
 
 function initializeOGStorage() {
   const privateKey = process.env.PRIVATE_KEY;
-  const rpcUrl = process.env.NEXT_PUBLIC_OG_TESTNET_RPC_URL || 'https://evmrpc-testnet.0g.ai/';
-  const indexerRpc = process.env.NEXT_PUBLIC_OG_INDEXER_RPC || 'https://indexer-storage-testnet-standard.0g.ai';
-
+  const rpcUrl = 'https://evmrpc.0g.ai';
+  const indexerRpc = 'https://indexer-storage-turbo.0g.ai';
+  
   if (!privateKey) {
     throw new Error('PRIVATE_KEY is required for OG Storage');
   }
