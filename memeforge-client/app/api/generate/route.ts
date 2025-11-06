@@ -21,13 +21,13 @@ function initializeOGServices() {
   const testnet_rpcUrl = 'https://evmrpc-testnet.0g.ai'
   const testnet_indexerRpc = 'https://indexer-storage-testnet-turbo.0g.ai'
 
-  if (!privateKey) {
+  if (!privateKey || !testPrivateKey) {
     throw new Error('PRIVATE_KEY is required for OG services');
   }
 
   const testnet_provider = new ethers.JsonRpcProvider(testnet_rpcUrl);
   const mainnet_provider = new ethers.JsonRpcProvider(mainnet_rpcUrl);
-  const testnet_signer = new ethers.Wallet(privateKey, testnet_provider);
+  const testnet_signer = new ethers.Wallet(testPrivateKey, testnet_provider);
   const mainnet_signer = new ethers.Wallet(privateKey, mainnet_provider);
   const indexer = new Indexer(mainnet_indexerRpc);
 

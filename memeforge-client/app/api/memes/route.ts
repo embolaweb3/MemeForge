@@ -6,8 +6,9 @@ const RPC_URL = process.env.NEXT_PUBLIC_OG_MAINNET_RPC_URL
 
 // Initialize provider
 const provider = new ethers.JsonRpcProvider(RPC_URL)
-const memeRegistry = new ethers.Contract(MemeRegistryABI.address!, MemeRegistryABI.abi, provider)
+const memeRegistry = new ethers.Contract(MemeRegistryABI.address, MemeRegistryABI.abi, provider)
 
+console.log(memeRegistry,'mr')
 interface OnChainMeme {
   id: number
   creator: string

@@ -4,8 +4,6 @@ import { ethers } from "ethers";
 import MemeRegistryABI from "@/lib/abis/MemeRegistry.json";
 import PaymentHandlerABI from "@/lib/abis/PaymentHandler.json";
 
-const MEME_REGISTRY_ADDRESS = process.env.NEXT_PUBLIC_MEME_REGISTRY_ADDRESS as `0x${string}`;
-const PAYMENT_HANDLER_ADDRESS = process.env.NEXT_PUBLIC_PAYMENT_HANDLER_ADDRESS as `0x${string}`;
 
 export function useMemeRegistry() {
   const { data: walletClient } = useWalletClient();
