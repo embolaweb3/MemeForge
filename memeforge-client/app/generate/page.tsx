@@ -119,10 +119,11 @@ export default function GeneratePage() {
       return
     }
 
-    if (chainId !== Number(process.env.NEXT_PUBLIC_OG_TESTNET_CHAIN_ID!)) {
-      alert("Please switch to 0G Chain to use MemeForge")
-      return
+    if (chainId !== 16602 && chainId !== 16661) {
+      alert("Please switch to 0G Chain to use MemeForge");
+      return;
     }
+
 
     setShowPaymentModal(true)
   }
@@ -175,111 +176,111 @@ export default function GeneratePage() {
     }
   }
 
-const generateMeme = async (customCaption?: string) => {
-  if ((!prompt && !selectedImage) || !paymentState.completed) return;
+  const generateMeme = async (customCaption?: string) => {
+    if ((!prompt && !selectedImage) || !paymentState.completed) return;
 
-  setIsGenerating(true);
-  setGeneratedMeme(null);
-  setStorageHash(null);
-  setTransactionHash(null);
-  setMemeCaption(null);
-  setMemeId(null);
+    setIsGenerating(true);
+    setGeneratedMeme(null);
+    setStorageHash(null);
+    setTransactionHash(null);
+    setMemeCaption(null);
+    setMemeId(null);
 
-  try {
-    let imageBase64 = null;
-    if (selectedImage) imageBase64 = await convertToBase64(selectedImage);
+    try {
+      let imageBase64 = null;
+      if (selectedImage) imageBase64 = await convertToBase64(selectedImage);
 
-    const finalPrompt = customCaption || prompt;
-    console.log("🧠 Generating meme via OG services...");
+      const finalPrompt = customCaption || prompt;
+      console.log("🧠 Generating meme via OG services...");
 
-    const response = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prompt: finalPrompt,
-        image: imageBase64,
-        creator: address,
-        userAddress: address,
-        paymentTxHash: paymentState.txHash,
-      }),
-    });
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: finalPrompt,
+          image: imageBase64,
+          creator: address,
+          userAddress: address,
+          paymentTxHash: paymentState.txHash,
+        }),
+      });
 
-    const data = await response.json();
-    if (!data.success) throw new Error(data.error || "Failed to generate meme");
+      const data = await response.json();
+      if (!data.success) throw new Error(data.error || "Failed to generate meme");
 
-    setGeneratedMeme(data.memeUrl);
-    setStorageHash(data.storageHash);
-    setMemeCaption(data.caption);
+      setGeneratedMeme(data.memeUrl);
+      setStorageHash(data.storageHash);
+      setMemeCaption(data.caption);
 
-    // Mint meme
-    const tx = await createMeme(
-      data.storageHash,
-      data.memeUrl,
-      data.caption,
-      finalPrompt,
-      true // AI generated
-    );
+      // Mint meme
+      const tx = await createMeme(
+        data.storageHash,
+        data.memeUrl,
+        data.caption,
+        finalPrompt,
+        true // AI generated
+      );
 
-    setTransactionHash(tx.hash);
-    console.log("🪄 Mint transaction sent:", tx.hash);
+      setTransactionHash(tx.hash);
+      console.log("🪄 Mint transaction sent:", tx.hash);
 
-    // --- ✅ More robust confirmation logic ---
-    const provider = tx.runner?.provider || new ethers.BrowserProvider(window.ethereum);
-    let receipt = null;
+      // --- ✅ More robust confirmation logic ---
+      const provider = tx.runner?.provider || new ethers.BrowserProvider(window.ethereum);
+      let receipt = null;
 
-    for (let i = 0; i < 5; i++) {
-      try {
-        receipt = await provider.getTransactionReceipt(tx.hash);
-        if (receipt) break;
-      } catch (rpcError: any) {
-        console.warn(`⏳ Waiting for receipt (attempt ${i + 1}):`, rpcError.message);
-      }
-      await new Promise(res => setTimeout(res, 3000));
-    }
-
-    if (!receipt) {
-      console.warn("⚠️ Still no receipt after retries, but continuing (likely RPC lag)");
-    }
-
-    const confirmedReceipt = receipt || (await tx.wait()).receipt;
-    console.log("✅ Transaction confirmed:", confirmedReceipt?.transactionHash);
-
-    // Extract Meme ID from events
-    const iface = new ethers.Interface(MemeRegistryABI.abi);
-    let memeId = null;
-
-    for (const log of confirmedReceipt?.logs || []) {
-      try {
-        const parsed = iface.parseLog(log);
-        if (parsed?.name === "MemeCreated") {
-          memeId = parsed.args[0].toString();
-          console.log("✅ Meme ID from event:", memeId);
-          break;
+      for (let i = 0; i < 5; i++) {
+        try {
+          receipt = await provider.getTransactionReceipt(tx.hash);
+          if (receipt) break;
+        } catch (rpcError: any) {
+          console.warn(`⏳ Waiting for receipt (attempt ${i + 1}):`, rpcError.message);
         }
-      } catch {}
+        await new Promise(res => setTimeout(res, 3000));
+      }
+
+      if (!receipt) {
+        console.warn("⚠️ Still no receipt after retries, but continuing (likely RPC lag)");
+      }
+
+      const confirmedReceipt = receipt || (await tx.wait()).receipt;
+      console.log("✅ Transaction confirmed:", confirmedReceipt?.transactionHash);
+
+      // Extract Meme ID from events
+      const iface = new ethers.Interface(MemeRegistryABI.abi);
+      let memeId = null;
+
+      for (const log of confirmedReceipt?.logs || []) {
+        try {
+          const parsed = iface.parseLog(log);
+          if (parsed?.name === "MemeCreated") {
+            memeId = parsed.args[0].toString();
+            console.log("✅ Meme ID from event:", memeId);
+            break;
+          }
+        } catch { }
+      }
+
+      if (!memeId) {
+        console.warn("⚠️ MemeCreated event not found — using fallback ID");
+        memeId = Math.floor(Math.random() * 100000);
+      }
+
+      setMemeId(memeId);
+
+    } catch (error: any) {
+      console.error("❌ Meme generation failed:", error);
+
+      // Ignore harmless "no matching receipts" RPC issue
+      if (error?.message?.includes("no matching receipts found")) {
+        console.warn("⚠️ RPC receipt delay detected — ignoring false error");
+        return;
+      }
+
+      alert(`Failed to generate meme: ${error.message}`);
+    } finally {
+      setIsGenerating(false);
     }
-
-    if (!memeId) {
-      console.warn("⚠️ MemeCreated event not found — using fallback ID");
-      memeId = Math.floor(Math.random() * 100000);
-    }
-
-    setMemeId(memeId);
-
-  } catch (error: any) {
-    console.error("❌ Meme generation failed:", error);
-
-    // Ignore harmless "no matching receipts" RPC issue
-    if (error?.message?.includes("no matching receipts found")) {
-      console.warn("⚠️ RPC receipt delay detected — ignoring false error");
-      return;
-    }
-
-    alert(`Failed to generate meme: ${error.message}`);
-  } finally {
-    setIsGenerating(false);
-  }
-};
+  };
 
 
 
@@ -397,7 +398,7 @@ const generateMeme = async (customCaption?: string) => {
   // Calculate total cost
   const totalCost = (
     parseFloat(SERVICE_FEES.AI_GENERATION) +
-    parseFloat(SERVICE_FEES.STORAGE)+
+    parseFloat(SERVICE_FEES.STORAGE) +
     parseFloat(SERVICE_FEES.MINT)
   ).toFixed(4)
 
@@ -526,7 +527,7 @@ const generateMeme = async (customCaption?: string) => {
               <CreditCard className="h-12 w-12 mx-auto mb-4 text-yellow-400" />
               <h3 className="text-xl font-semibold mb-2">Payment Required</h3>
               <p className="text-gray-300 mb-4">
-                Pay {Number(totalCost) - Number(SERVICE_FEES.MINT) } OG to use AI generation and on-chain storage services
+                Pay {Number(totalCost) - Number(SERVICE_FEES.MINT)} OG to use AI generation and on-chain storage services
               </p>
               <Button variant="premium" onClick={openPaymentModal}>
                 <Zap className="h-4 w-4 mr-2" />
@@ -618,7 +619,7 @@ const generateMeme = async (customCaption?: string) => {
                 {/* AI Options Generator */}
                 {prompt && paymentState.completed && (
                   <div className="flex space-x-2">
-                    
+
                   </div>
                 )}
               </div>
@@ -634,8 +635,8 @@ const generateMeme = async (customCaption?: string) => {
                       <div
                         key={index}
                         className={`p-3 rounded-lg border cursor-pointer transition-all ${selectedOption === index
-                            ? 'border-cyan-500 bg-cyan-500/10'
-                            : 'border-white/10 bg-black/20 hover:border-white/30'
+                          ? 'border-cyan-500 bg-cyan-500/10'
+                          : 'border-white/10 bg-black/20 hover:border-white/30'
                           }`}
                         onClick={() => setSelectedOption(index)}
                       >
@@ -663,8 +664,8 @@ const generateMeme = async (customCaption?: string) => {
                   Upload Image (Optional)
                 </label>
                 <div className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${paymentState.completed
-                    ? 'border-white/10 hover:border-cyan-400/50 cursor-pointer'
-                    : 'border-gray-600/50 opacity-50'
+                  ? 'border-white/10 hover:border-cyan-400/50 cursor-pointer'
+                  : 'border-gray-600/50 opacity-50'
                   }`}>
                   <input
                     type="file"
