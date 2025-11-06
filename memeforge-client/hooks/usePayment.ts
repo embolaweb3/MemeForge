@@ -29,7 +29,7 @@ export function usePayment() {
       const signer = walletClient ? await provider.getSigner() : null;
 
       const contract = new ethers.Contract(
-        PAYMENT_HANDLER_ADDRESS,
+        PaymentHandlerABI.address,
         PaymentHandlerABI.abi,
         signer || provider
       );
@@ -44,7 +44,7 @@ export function usePayment() {
     serviceType: "mint" | "remix" | "ai_generation" | "storage" | "ai_and_storage"
   ) => {
     if (!isConnected) throw new Error("Please connect your wallet first");
-    if (chainId !== Number(process.env.NEXT_PUBLIC_OG_TESTNET_CHAIN_ID!))
+    if (chainId !== 16661)
       throw new Error("Please switch to 0G Chain to use MemeForge");
     if (!paymentHandler) throw new Error("Payment contract not available");
 

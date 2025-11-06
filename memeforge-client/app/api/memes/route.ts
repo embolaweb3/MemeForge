@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ethers } from 'ethers'
 import MemeRegistryABI from '@/lib/abis/MemeRegistry.json'
 
-const MEME_REGISTRY_ADDRESS = process.env.NEXT_PUBLIC_MEME_REGISTRY_ADDRESS
-const RPC_URL = process.env.NEXT_PUBLIC_OG_TESTNET_RPC_URL
+const RPC_URL = process.env.NEXT_PUBLIC_OG_MAINNET_RPC_URL
 
 // Initialize provider
 const provider = new ethers.JsonRpcProvider(RPC_URL)
-const memeRegistry = new ethers.Contract(MEME_REGISTRY_ADDRESS!, MemeRegistryABI.abi, provider)
+const memeRegistry = new ethers.Contract(MemeRegistryABI.address!, MemeRegistryABI.abi, provider)
 
 interface OnChainMeme {
   id: number

@@ -48,6 +48,7 @@ const wagmiConfig = createConfig({
   chains: [og_testnet, og_mainnet] as const,
   transports: {
     [og_testnet.id]: http(),
+    [og_mainnet.id]: http(),
   },
   connectors: [
     injected(),

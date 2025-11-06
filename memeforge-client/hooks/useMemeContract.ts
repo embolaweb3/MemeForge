@@ -16,10 +16,10 @@ export function useMemeRegistry() {
     const provider = new ethers.BrowserProvider((window as any).ethereum);
     if (walletClient) {
       provider.getSigner().then((signer) => {
-        setContract(new ethers.Contract(MEME_REGISTRY_ADDRESS, MemeRegistryABI.abi, signer));
+        setContract(new ethers.Contract(MemeRegistryABI.address, MemeRegistryABI.abi, signer));
       });
     } else {
-      setContract(new ethers.Contract(MEME_REGISTRY_ADDRESS, MemeRegistryABI.abi, provider));
+      setContract(new ethers.Contract(MemeRegistryABI.address, MemeRegistryABI.abi, provider));
     }
   }, [walletClient]);
 
@@ -35,10 +35,10 @@ export function usePaymentHandler() {
     const provider = new ethers.BrowserProvider((window as any).ethereum);
     if (walletClient) {
       provider.getSigner().then((signer) => {
-        setContract(new ethers.Contract(PAYMENT_HANDLER_ADDRESS, PaymentHandlerABI.abi, signer));
+        setContract(new ethers.Contract(PaymentHandlerABI.address, PaymentHandlerABI.abi, signer));
       });
     } else {
-      setContract(new ethers.Contract(PAYMENT_HANDLER_ADDRESS, PaymentHandlerABI.abi, provider));
+      setContract(new ethers.Contract(PaymentHandlerABI.address, PaymentHandlerABI.abi, provider));
     }
   }, [walletClient]);
 

@@ -85,7 +85,7 @@ export default function GeneratePage() {
   // Balance check
   const { data: balance } = useBalance({
     address: address,
-    chainId: Number(process.env.NEXT_PUBLIC_OG_TESTNET_CHAIN_ID!),
+    chainId: 16661,
   })
 
   const SERVICE_FEES = {

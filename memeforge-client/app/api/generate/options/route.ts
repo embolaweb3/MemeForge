@@ -9,7 +9,7 @@ const OFFICIAL_PROVIDERS = {
 };
 
 async function generateMemeCaption(prompt: string) {
-  const privateKey = process.env.PRIVATE_KEY;
+  const privateKey = process.env.TESTNET_PRIVATE_KEY;
   const rpcUrl = process.env.NEXT_PUBLIC_OG_TESTNET_RPC_URL || "https://evmrpc-testnet.0g.ai";
 
   if (!privateKey) {

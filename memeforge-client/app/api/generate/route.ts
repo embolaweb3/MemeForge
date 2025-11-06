@@ -15,27 +15,32 @@ const OFFICIAL_PROVIDERS = {
 // Initialize OG Services
 function initializeOGServices() {
   const privateKey = process.env.PRIVATE_KEY;
-  const rpcUrl = 'https://evmrpc.0g.ai';
-  const indexerRpc = 'https://indexer-storage-turbo.0g.ai';
+  const testPrivateKey = process.env.TESTNET_PRIVATE_KEY;
+  const mainnet_rpcUrl = 'https://evmrpc.0g.ai';
+  const mainnet_indexerRpc = 'https://indexer-storage-turbo.0g.ai';
+  const testnet_rpcUrl = 'https://evmrpc-testnet.0g.ai'
+  const testnet_indexerRpc = 'https://indexer-storage-testnet-turbo.0g.ai'
 
   if (!privateKey) {
     throw new Error('PRIVATE_KEY is required for OG services');
   }
 
-  const provider = new ethers.JsonRpcProvider(rpcUrl);
-  const signer = new ethers.Wallet(privateKey, provider);
-  const indexer = new Indexer(indexerRpc);
+  const testnet_provider = new ethers.JsonRpcProvider(testnet_rpcUrl);
+  const mainnet_provider = new ethers.JsonRpcProvider(mainnet_rpcUrl);
+  const testnet_signer = new ethers.Wallet(privateKey, testnet_provider);
+  const mainnet_signer = new ethers.Wallet(privateKey, mainnet_provider);
+  const indexer = new Indexer(mainnet_indexerRpc);
 
-  return { provider, signer, indexer,rpcUrl };
+  return { testnet_provider,mainnet_provider,mainnet_indexerRpc, testnet_signer,mainnet_signer, indexer,testnet_rpcUrl,mainnet_rpcUrl };
 }
 
 // Generate meme caption using OG Inference
 async function generateMemeCaption(prompt: string) {
-  const { provider, signer } = initializeOGServices();
+  const { testnet_provider, testnet_signer } = initializeOGServices();
   
   try {
     console.log('Initializing OG Inference broker...');
-    const broker = await createZGComputeNetworkBroker(signer);
+    const broker = await createZGComputeNetworkBroker(testnet_signer);
     
     const targetProvider = OFFICIAL_PROVIDERS["llama-3.3-70b-instruct"];
     console.log(targetProvider)
@@ -132,7 +137,7 @@ async function generateMemeCaption(prompt: string) {
 
 // Upload to OG Storage
 async function uploadToOGStorage(buffer: Buffer, fileName: string) {
-  const { provider, signer, indexer,rpcUrl } = initializeOGServices();
+  const { mainnet_provider, mainnet_signer, indexer,mainnet_rpcUrl } = initializeOGServices();
 
   try {
     console.log(`Uploading to OG Storage: ${fileName}, size: ${buffer.length} bytes`);
@@ -159,7 +164,7 @@ async function uploadToOGStorage(buffer: Buffer, fileName: string) {
     }
 
     // Upload file to OG Storage
-    const [tx, uploadErr] = await indexer.upload(zgFile, rpcUrl, signer as any);
+    const [tx, uploadErr] = await indexer.upload(zgFile, mainnet_rpcUrl, mainnet_signer as any);
 
     console.log('OG Storage Upload - Transaction Hash:', tx);
     if (uploadErr !== null) {
